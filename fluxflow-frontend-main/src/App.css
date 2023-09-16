@@ -1,0 +1,198 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  /* background-color: #282c34; */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  /* color: white; */
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+.container {
+  margin: auto;
+  width: 1240px;
+  display: flex;
+  flex-direction: column;
+}
+
+.container1 {
+  margin: auto;
+  width: 1240px;
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.child1 {
+  width: 24.5%;
+  /* height: 50%; */
+  /* display: inline; */
+  border: 1px solid black;
+}
+
+.child2 {
+  width: 75%;
+  border: 1px solid black;
+  /* border: 0.2px solid black; */
+  /* display: inline; */
+}
+
+.child3,
+.child4 {
+  width: 49.5%;
+  border: 1px solid black;
+}
+
+.child5 {
+  width: 100%;
+  border: 1px solid black;
+}
+
+#tooltip {
+  position: absolute;
+  text-align: center;
+  padding: 10px;
+  /* Adjust padding as needed */
+  margin: 10px;
+  /* Adjust margins as needed */
+  background: #FFFFFF;
+  color: #000;
+  border: 1px solid #768A90;
+  border-radius: 4px;
+  width: auto;
+  /* Remove fixed width to allow content to dictate the width */
+  max-width: 500px;
+  /* Optionally set a max-width to prevent excessive width */
+  font-size: 1rem;
+  display: flex;
+  /* Use flexbox to center the content */
+  justify-content: center;
+  /* Center the content horizontally */
+  align-items: center;
+  /* Center the content vertically */
+  flex-direction:column;
+}
+
+.tooltip_margin {
+  margin: 50px;
+}
+
+#mds_tooltip {
+  position: absolute;
+    text-align: center;
+    padding: 10px;
+    /* Adjust padding as needed */
+    margin: 10px;
+    /* Adjust margins as needed */
+    background: #FFFFFF;
+    color: #000;
+    border: 1px solid #768A90;
+    border-radius: 4px;
+    width: auto;
+    /* Remove fixed width to allow content to dictate the width */
+    max-width: 500px;
+    /* Optionally set a max-width to prevent excessive width */
+    font-size: 1rem;
+    display: flex;
+    /* Use flexbox to center the content */
+    justify-content: center;
+    /* Center the content horizontally */
+    align-items: center;
+    /* Center the content vertically */
+    flex-direction: column;
+}
+
+#dendo_tooltip {
+  position: absolute;
+  text-align: center;
+  padding: 0.2rem;
+  /* background: #768A90; */
+  color: #000;
+  /* border: 1px solid #768A90; */
+  border-radius: 4px;
+  width: 100px;
+  height: 90px;
+  font-size: 1rem;
+  overflow-wrap: break-word;
+}
+
+.lines {
+  stroke-width: 1px;
+  stroke: rgb(161, 157, 157);
+  position: absolute;
+  z-index: -1;
+  fill: rgb(161, 157, 157);
+}
+
+.view_text {
+  text-align: center;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+  margin: 10px;
+  font-weight: bold;
+}
+
+.ct1 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Center contents horizontally */
+  text-align: center;
+  /* Center text within .view_text */
+  margin-top: 20px;
+  /* Optional: Add margin to space out the container from the top */
+}
+
+.svg-container {
+  max-width: 800px;
+  /* Adjust the max width as needed */
+  /* You can set a specific height for the container if necessary */
+}
+
+#my_svg {
+  /* Make the SVG take the full width of its container */
+  height: auto;
+  /* Maintain aspect ratio */
+  max-height: 455px;
+  /* Optional: Set a max-height if needed */
+}
+
+/* body{
+  background-color: lightgray;
+} */
