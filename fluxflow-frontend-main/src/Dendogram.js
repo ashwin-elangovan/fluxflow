@@ -2,16 +2,16 @@ import React from 'react';
 import * as d3 from "d3";
 // import Papa from 'papaparse'
 // import myData from '/data/HeatMap/changed.csv';
-// import axios from "axios";
+import axios from "axios";
 import treeData from './second'
 
 class Dendogram extends React.Component {
 
     dataFetches; data;
-    // constructor(props) {
-    //     super(props)
+    constructor(props) {
+        super(props)
 
-    // }
+    }
 
 
 
@@ -87,13 +87,13 @@ class Dendogram extends React.Component {
         console.log(root)
         update(root);
         // Collapse the node and all it's children
-        // function collapse(d) {
-        //     if (d.children) {
-        //         d._children = d.children;
-        //         d._children.forEach(collapse);
-        //         d.children = null;
-        //     }
-        // }
+        function collapse(d) {
+            if (d.children) {
+                d._children = d.children;
+                d._children.forEach(collapse);
+                d.children = null;
+            }
+        }
 
         function update(source) {
 
@@ -235,15 +235,15 @@ class Dendogram extends React.Component {
                 });
 
             // Remove any exiting links
-            // var linkExit = link
-            //     .exit()
-            //     .transition()
-            //     .duration(duration)
-            //     .attr("d", function (d) {
-            //         var o = { x: source.x, y: source.y };
-            //         return diagonal(o, o);
-            //     })
-            //     .remove();
+            var linkExit = link
+                .exit()
+                .transition()
+                .duration(duration)
+                .attr("d", function (d) {
+                    var o = { x: source.x, y: source.y };
+                    return diagonal(o, o);
+                })
+                .remove();
 
             // Store the old positions for transition.
             nodes.forEach(function (d) {

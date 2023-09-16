@@ -1,7 +1,9 @@
+import axios from "axios";
 import React from 'react';
 import * as d3 from "d3";
+import myData from './mds_mock.json';
 import Papa from 'papaparse'
-import { connect } from 'react-redux'
+import { action, connect } from 'react-redux'
 import * as actionTypes from './redux/actions/actionType'
 import cloneDeep from 'clone-deep'
 import './App.css';
@@ -16,9 +18,10 @@ thread size = length
 
 class BeeSwarm extends React.Component {
 
-    // constructor(props) {
-    //     super(props)
-    // }
+    constructor(props) {
+        super(props)
+
+    }
 
     width = 930;
     height = 720;
@@ -125,7 +128,7 @@ class BeeSwarm extends React.Component {
     }
 
     async drawBeeswarmChart(data) {
-        if (data.length === 0) {
+        if (data.length == 0) {
             return
         }
 
@@ -133,14 +136,14 @@ class BeeSwarm extends React.Component {
             // console.log(this.data[i].date)
             // this.timedata.push(new Date(this.data[i][1]))
             this.timedata.push(new Date(this.data[i].date))//this.timedata.push(new Date(this.data[i][1]))
-            // let temp = {
-            //     id: this.data[i][0],
-            //     date: new Date(this.data[i][1]),
-            //     sentiment: this.data[i][2],
-            //     category: this.data[i][3],
-            //     // category: this.data[3],
-            //     thread_size: this.data[i][4]
-            // }
+            let temp = {
+                id: this.data[i][0],
+                date: new Date(this.data[i][1]),
+                sentiment: this.data[i][2],
+                category: this.data[i][3],
+                // category: this.data[3],
+                thread_size: this.data[i][4]
+            }
             // console.log(temp)
             // this.data[i] = temp;
             // console.log(this.data[i])
@@ -173,11 +176,11 @@ class BeeSwarm extends React.Component {
             .domain([0, 10])
             .range([1, 10]);
 
-        // let pieBig = d => d3.arc()
-        //     .innerRadius(0)
-        //     .outerRadius(() => { return z(14) })
-        //     .startAngle(0)
-        //     .endAngle(360)
+        let pieBig = d => d3.arc()
+            .innerRadius(0)
+            .outerRadius(() => { return z(14) })
+            .startAngle(0)
+            .endAngle(360)
 
         var anomalyColor = d3.scaleLinear()
             .domain([0, 0.5, 0.625, 0.75, 1])

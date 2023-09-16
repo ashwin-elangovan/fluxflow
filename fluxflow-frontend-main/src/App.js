@@ -1,12 +1,17 @@
+import logo from './logo.svg';
 import './App.css';
 import axios from "axios";
 import React from 'react';
+import MDS from './mds';
+import Circle from './circle';
 import MDS_view from './MDS_view';
 import BeeSwarm from './Beeswarm';
 import Extension from './Extension';
 import HeatMap from './Heatmap';
+import Dendogram from './Dendogram'
+import DendoNew from './Dendonew';
 import DendoNewRev from './DendonewRev';
-import { connect } from 'react-redux'
+import { action, connect } from 'react-redux'
 import * as actionTypes from './redux/actions/actionType'
 
 class App extends React.Component {
@@ -43,6 +48,11 @@ class App extends React.Component {
   }
   async componentDidMount() {
 
+
+    let cors = {
+      origin: "*",
+      methods: ["GET", "POST"]
+    }
     // let MDS_data = await axios
     //   .get('data/datum/new/mds_view_data.json')
     //   .then()

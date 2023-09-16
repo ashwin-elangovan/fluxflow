@@ -1,4 +1,4 @@
-// import axios from "axios";
+import axios from "axios";
 import React from 'react';
 import * as d3 from "d3";
 import myData from './mds_mock.json';
@@ -21,7 +21,7 @@ class MDS extends React.Component {
         console.log(diffDays)
 
         var data = [json_data.anomaly_score, json_data.sentiment_score, json_data.user_volume - 100, new Date(json_data.starting_time), new Date(json_data.ending_time), diffDays]
-        // let data_inner_circle = [json_data.sentiment_score];
+        let data_inner_circle = [json_data.sentiment_score];
         // var data = [1.1, 2.2, 4.46, 2.12, 1.36, 5.002445, 4.1242]
         let outerRadius = await this.normalization(json_data.user_volume, 1000, 500) * 100;
         let inner_circle_radius = outerRadius / 10;//((await this.normalization(json_data.user_volume, 1000, 500) * 10)); //((await this.normalization(json_data.user_volume, 1000, 10) * 10));
@@ -47,37 +47,37 @@ class MDS extends React.Component {
             .enter()
         // .append("g");
 
-        // Appending path
-        // var circ = arcs.append("path")
-        //     .attr("fill", d3.schemeSet3[0])
-        //     // (data, i) => {
-        //     //     // console.log(data)
-        //     //     // let value = data.data;
-        //     //     return d3.schemeSet3[i];
-        //     // })
-        //     .attr("d", arc)
+        // Appending path 
+        var circ = arcs.append("path")
+            .attr("fill", d3.schemeSet3[0])
+            // (data, i) => {
+            //     // console.log(data)
+            //     // let value = data.data;
+            //     return d3.schemeSet3[i];
+            // })
+            .attr("d", arc)
 
         //d3.selectAll("path")
         // console.log(Math.sin(6.8 - Math.PI / 2) * (outerRadius - 50))
         console.log(data)
 
-        // var lines = svg.selectAll(null)
-        //     .data(pie([json_data]))
-        //     .enter()
-        //     .append("line")
-        //     .attr("x1", 0)
-        //     .attr("y1", 0)
-        //     .attr("y2", function (d) {
-        //         console.log(d.data.ending_time)
+        var lines = svg.selectAll(null)
+            .data(pie([json_data]))
+            .enter()
+            .append("line")
+            .attr("x1", 0)
+            .attr("y1", 0)
+            .attr("y2", function (d) {
+                console.log(d.data.ending_time)
 
-        //         return Math.sin(0 - Math.PI / 2) * (outerRadius)
-        //     })
-        //     .attr("x2", function (d) {
-        //         return Math.cos(0 - Math.PI / 2) * (outerRadius - 50)
-        //     })
-        //     .attr("stroke", "black")
-        //     .attr("stroke-width", 1)
-        //     .attr("transform", `translate(${transform_x},${transform_y})`);
+                return Math.sin(0 - Math.PI / 2) * (outerRadius)
+            })
+            .attr("x2", function (d) {
+                return Math.cos(0 - Math.PI / 2) * (outerRadius - 50)
+            })
+            .attr("stroke", "black")
+            .attr("stroke-width", 1)
+            .attr("transform", `translate(${transform_x},${transform_y})`);
 
         var radius = 80;
         var tickLength = 10;
@@ -101,7 +101,7 @@ class MDS extends React.Component {
             return degrees * Math.PI / 180;
         }
 
-        // it'll give you xy-coord by degree from 12(or 0) o'clock
+        // it'll give you xy-coord by degree from 12(or 0) o'clock 
         function getCoordFromCircle(deg, cx, cy, r) {
             var rad = degToRad(deg);
             var x = cx + r * Math.cos(rad);
@@ -123,7 +123,7 @@ class MDS extends React.Component {
         var fromClock = 0;
         var toClock = 24;
 
-        arc = d3.arc()
+        var arc = d3.arc()
             .innerRadius(0)
             .outerRadius(outerRadius)
             .startAngle(clockToRad(fromClock, -1))
@@ -141,25 +141,25 @@ class MDS extends React.Component {
             return degToRad(degree);
         }
 
-        // var lines = svg.selectAll(null)
-        //     .data(pie([json_data]))
-        //     .enter()
-        //     .append("line")
-        //     .attr("x1", 0)
-        //     .attr("y1", 0)
-        //     .attr("y2", function (d) {
-        //         console.log(d.data.ending_time)
+        var lines = svg.selectAll(null)
+            .data(pie([json_data]))
+            .enter()
+            .append("line")
+            .attr("x1", 0)
+            .attr("y1", 0)
+            .attr("y2", function (d) {
+                console.log(d.data.ending_time)
 
 
 
-        //         return Math.sin(122 - Math.PI / 2) * (outerRadius)
-        //     })
-        //     .attr("x2", function (d) {
-        //         return Math.cos(122 - Math.PI / 2) * (outerRadius - 50)
-        //     })
-        //     .attr("stroke", "black")
-        //     .attr("stroke-width", 1)
-        //     .attr("transform", `translate(${transform_x},${transform_y})`);
+                return Math.sin(122 - Math.PI / 2) * (outerRadius)
+            })
+            .attr("x2", function (d) {
+                return Math.cos(122 - Math.PI / 2) * (outerRadius - 50)
+            })
+            .attr("stroke", "black")
+            .attr("stroke-width", 1)
+            .attr("transform", `translate(${transform_x},${transform_y})`);
 
 
         // circ

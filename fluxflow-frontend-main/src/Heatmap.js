@@ -1,20 +1,20 @@
-// import axios from "axios";
+import axios from "axios";
 import React from 'react';
 import * as d3 from "d3";
-// import myData from './mds_mock.json';
-// import Papa from 'papaparse'
-import { connect } from 'react-redux'
+import myData from './mds_mock.json';
+import Papa from 'papaparse'
+import { action, connect } from 'react-redux'
 import * as actionTypes from './redux/actions/actionType'
-// import cloneDeep from 'clone-deep'
+import cloneDeep from 'clone-deep'
 
 
 class HeatMap extends React.Component {
 
     dataFetches; data;
-    // constructor(props) {
-    //     super(props)
+    constructor(props) {
+        super(props)
 
-    // }
+    }
 
     /*
         statuses
@@ -58,7 +58,7 @@ class HeatMap extends React.Component {
         //   console.log(myVars)
 
         var margin = { top: 80, right: 25, bottom: 30, left: 40 },
-            // width = 300 - margin.left - margin.right,
+            width = 300 - margin.left - margin.right,
             height = 200 - margin.top - margin.bottom;
 
         var svg = d3.select("#heatmap")
@@ -108,15 +108,15 @@ class HeatMap extends React.Component {
         // .style("padding", "0px")
 
         // Three function that change the tooltip when user hover / move / leave a cell
-        // var mouseover = (d) => {
+        var mouseover = (d) => {
 
-        //     tooltip
-        //         .style("opacity", 1)
-        //     d3.select("#" + d.group + d.variable)
-        //         .style("stroke", "black")
-        //         .style("opacity", 1)
+            tooltip
+                .style("opacity", 1)
+            d3.select("#" + d.group + d.variable)
+                .style("stroke", "black")
+                .style("opacity", 1)
 
-        // }
+        }
         var mousemove = (event, d) => {
             tooltip
                 .html("<b>Tweet ID:</b> " + d.variable + `<br><b>${d.group}:</b> ` + d.value)

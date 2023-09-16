@@ -1,21 +1,21 @@
-// import axios from "axios";
+import axios from "axios";
 import React from 'react';
 import * as d3 from "d3";
 
-// import myData from './mds_mock.json';
-// import Papa from 'papaparse'
-// import versor from "versor";
+import myData from './mds_mock.json';
+import Papa from 'papaparse'
+import versor from "versor";
 import * as topojson from "topojson-client";
-import { event as currentEvent } from 'd3-selection';
+import { event as currentEvent, mouse, select } from 'd3-selection';
 import geoZoom from "d3-geo-zoom";
 import {
     findNearestCity,
     drag,
 } from './ExtensionHelper';
 
-import { connect } from 'react-redux'
+import { action, connect } from 'react-redux'
 import * as actionTypes from './redux/actions/actionType'
-// import cloneDeep from 'clone-deep'
+import cloneDeep from 'clone-deep'
 
 class Extension extends React.Component {
 
@@ -189,7 +189,7 @@ class Extension extends React.Component {
 
             cityNames.push(city.properties.name)
 
-            if (this.selectedCity && this.selectedCity.properties.name === city.properties.name) {
+            if (this.selectedCity && this.selectedCity.properties.name == city.properties.name) {
                 this.selectedCity.properties.pop_max = city.properties.pop_max
             }
 
@@ -289,7 +289,7 @@ class Extension extends React.Component {
             if (this.d3Trans.k !== 1) return;
             var mousePosition = d3.pointer(event);
             var p = projection.invert(mousePosition);
-            if (p === undefined || !p[0] || !p[1]) {
+            if (p == undefined || !p[0] || !p[1]) {
                 return false;
             }
             const city = findNearestCity(mousePosition, this.canvasWidth, this.canvasHeight, renderArgs);
@@ -314,7 +314,7 @@ class Extension extends React.Component {
             .onMove(() => { return temp(renderArgs) })(this.d3Canvas.canvas)
 
         // Transitions to plotted region
-        if (citiesJson.features.length !== 0) {
+        if (citiesJson.features.length != 0) {
             this.transition(citiesJson.features[0].geometry.coordinates, renderArgs);
             // console.log("Inside if")
         } else {

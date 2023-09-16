@@ -2,16 +2,16 @@ import React from 'react';
 import * as d3 from "d3";
 // import Papa from 'papaparse'
 // import myData from '/data/HeatMap/changed.csv';
-// import axios from "axios";
+import axios from "axios";
 import treeData from './second'
 
 class DendoNew extends React.Component {
 
     dataFetches; data;
-    // constructor(props) {
-    //     super(props)
+    constructor(props) {
+        super(props)
 
-    // }
+    }
 
     async componentDidMount() {
 
@@ -56,20 +56,20 @@ class DendoNew extends React.Component {
 
             var color = d3.scaleOrdinal(d3.schemeCategory10);
             var treemap = d3.tree().size([height, width]);
-            // const categories = [];
-            // const setCategory = (d) => {
-            //     if (d.name && d.children) {
-            //         categories.push(d.name);
-            //     }
+            const categories = [];
+            const setCategory = (d) => {
+                if (d.name && d.children) {
+                    categories.push(d.name);
+                }
 
-            //     if (d.children) {
-            //         d.children.forEach((d) => {
-            //             setCategory(d);
-            //         });
-            //     } else {
-            //         categories.push(d.name);
-            //     }
-            // };
+                if (d.children) {
+                    d.children.forEach((d) => {
+                        setCategory(d);
+                    });
+                } else {
+                    categories.push(d.name);
+                }
+            };
 
             var i = 0,
                 duration = 750,
@@ -95,11 +95,11 @@ class DendoNew extends React.Component {
 
 
 
-                // let pieSmall = d => d3.arc()
-                //     // .innerRadius(0)
-                //     // .outerRadius(() => { return z(3) })
-                //     .startAngle(d.pie.startAngle)
-                //     .endAngle(d.pie.endAngle)
+                let pieSmall = d => d3.arc()
+                    // .innerRadius(0)
+                    // .outerRadius(() => { return z(3) })
+                    .startAngle(d.pie.startAngle)
+                    .endAngle(d.pie.endAngle)
 
 
                 function drawPie(d) {
@@ -237,7 +237,7 @@ class DendoNew extends React.Component {
                 .size([height, width - 100]);  // 100 is the margin I will have on the right side
 
             // Give the data to this cluster layout:
-            root = d3.hierarchy(treeData, function (d) {
+            var root = d3.hierarchy(treeData, function (d) {
                 return d.children;
             });
 
