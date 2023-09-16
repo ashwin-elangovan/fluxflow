@@ -1,10 +1,12 @@
 import axios from "axios";
 import React from 'react';
-import * as d3 from "https://cdn.skypack.dev/d3@7";
+import * as d3 from "d3";
+
 import myData from './mds_mock.json';
 import Papa from 'papaparse'
 import versor from "versor";
 import * as topojson from "topojson-client";
+import { event as currentEvent, mouse, select } from 'd3-selection';
 import geoZoom from "d3-geo-zoom";
 import {
     findNearestCity,
@@ -154,7 +156,7 @@ class Extension extends React.Component {
         citiesJson,
     }) => {
 
-        this.d3Trans = (d3.event && d3.event.transform) || this.d3Trans;
+        this.d3Trans = (currentEvent && currentEvent.transform) || this.d3Trans;
         cityPath.pointRadius((d) => {
             return (d.properties.pop_max)
         }); // City path
@@ -235,7 +237,7 @@ class Extension extends React.Component {
             graticule,
             graticulePath,
             countries,
-            citiesJson,
+            citiesJson
         } = renderArgs;
 
 

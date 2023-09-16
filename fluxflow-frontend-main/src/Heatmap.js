@@ -1,6 +1,6 @@
 import axios from "axios";
 import React from 'react';
-import * as d3 from "https://cdn.skypack.dev/d3@7";
+import * as d3 from "d3";
 import myData from './mds_mock.json';
 import Papa from 'papaparse'
 import { action, connect } from 'react-redux'
