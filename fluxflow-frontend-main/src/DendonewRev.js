@@ -375,9 +375,8 @@ class DendoNewRev extends React.Component {
 
                 tooltip.html((y, data) => {
                     // console.log(e, y, data, this.d);
-                    return `Keywords: <strong> ${e.data.glyph.keywords.toString()} </strong>
-                        <br>
-
+                    return `<div>Keywords clustered: </div>
+                            <div> <strong> ${e.data.glyph.keywords.toString()} </strong> </div>
                        `})
                     .style("visibility", "visible")
                     .style("z-index", "100")
@@ -423,7 +422,7 @@ class DendoNewRev extends React.Component {
     render() {
         return (
             <div id='dendogramNew'>
-            <div id="dendo_tooltip">
+            <div id="dendo_tooltip" className='tooltip-container'>
 
             </div>
                 <div id="dendo_text" className='view_text'>

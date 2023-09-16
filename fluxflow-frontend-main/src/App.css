@@ -138,16 +138,63 @@
 
 #dendo_tooltip {
   position: absolute;
+    text-align: center;
+    padding: 10px;
+    /* Adjust padding as needed */
+    margin: 10px;
+    /* Adjust margins as needed */
+    background: #FFFFFF;
+    color: #000;
+    border: 1px solid #768A90;
+    border-radius: 4px;
+    width: auto;
+    /* Remove fixed width to allow content to dictate the width */
+    max-width: 500px;
+    /* Optionally set a max-width to prevent excessive width */
+    font-size: 1rem;
+    display: flex;
+    /* Use flexbox to center the content */
+    justify-content: center;
+    /* Center the content horizontally */
+    align-items: center;
+    /* Center the content vertically */
+    flex-direction: column;
+}
+
+.tooltip-container {
+  position: absolute;
   text-align: center;
-  padding: 0.2rem;
-  /* background: #768A90; */
+  padding: 10px;
+  margin: 10px;
+  background: #FFFFFF;
   color: #000;
-  /* border: 1px solid #768A90; */
+  border: 1px solid #768A90;
   border-radius: 4px;
-  width: 100px;
-  height: 90px;
+  max-width: 500px;
+  /* Adjust the max-width as needed */
   font-size: 1rem;
-  overflow-wrap: break-word;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  white-space: nowrap;
+  /* Prevent text from wrapping */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* Add ellipsis for overflowed text */
+}
+
+.tooltip-container>div {
+  max-width: 100%;
+  /* Allow divs inside the tooltip to expand to their full width */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tooltip-container>div:last-child {
+  margin-bottom: 0;
+  /* Remove margin-bottom from the last div */
 }
 
 .lines {
