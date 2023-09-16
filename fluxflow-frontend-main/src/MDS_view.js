@@ -1,17 +1,17 @@
-import axios from "axios";
+// import axios from "axios";
 import React from 'react';
 import * as d3 from "d3";
 import myData from './mds_mock.json';
 import Papa from 'papaparse'
-import { useSelector, useDispatch } from 'react-redux'
-import { action, connect } from 'react-redux'
+// import { useSelector, useDispatch } from 'react-redux'
+import { connect } from 'react-redux'
 // import { decrement } from './redux/reducers/reducerSlice'
 import * as actionTypes from './redux/actions/actionType'
 import cloneDeep from 'clone-deep'
 
 
-let csr = Papa.parse(".data/final_topic.csv")
-let csr_tweets = Papa.parse(".data/final_topic_all.csv")
+// let csr = Papa.parse(".data/final_topic.csv")
+// let csr_tweets = Papa.parse(".data/final_topic_all.csv")
 // let csr = Papa.parse(".data/final_topic.csv")
 // let csr = Papa.parse(".data/final_topic.csv")
 
@@ -39,10 +39,10 @@ let csr_tweets = Papa.parse(".data/final_topic_all.csv")
 
 class MDS_view extends React.Component {
 
-    constructor(props) {
-        super(props)
+    // constructor(props) {
+    //     super(props)
 
-    }
+    // }
 
 
     data = []
@@ -138,9 +138,9 @@ class MDS_view extends React.Component {
 
         this.dataPreProcess(o, tweets_flux)
 
-        var anomalyColor = d3.scaleLinear()
-            .domain([0, 0.5, 0.625, 0.75, 1])
-            .range(["darkorchid", "peru", "darkturquoise", "azure", "darksalmon", "grey"]);
+        // var anomalyColor = d3.scaleLinear()
+        //     .domain([0, 0.5, 0.625, 0.75, 1])
+        //     .range(["darkorchid", "peru", "darkturquoise", "azure", "darksalmon", "grey"]);
 
         var sentimentColor = d3.scaleLinear()
             .domain([0, 0.05, 0.5, 0.625, 0.75, 1])
@@ -153,7 +153,7 @@ class MDS_view extends React.Component {
         // console.log(this.myRef)
 
         var margin = { top: 10, right: 20, bottom: 30, left: 20 },
-            width = 310 - margin.left - margin.right,
+            // width = 310 - margin.left - margin.right,
             height = 400 - margin.top - margin.bottom;
 
         var svg = d3.select("#my_svg")
@@ -198,10 +198,10 @@ class MDS_view extends React.Component {
                 data.push(mds_data[i]);
             }
         }
-        var x_min = Math.min.apply(null, x_arr),
-            x_max = Math.max.apply(null, x_arr),
-            y_min = Math.min.apply(null, y_arr),
-            y_max = Math.max.apply(null, y_arr);
+        // var x_min = Math.min.apply(null, x_arr),
+        //     x_max = Math.max.apply(null, x_arr),
+        //     y_min = Math.min.apply(null, y_arr),
+        //     y_max = Math.max.apply(null, y_arr);
 
 
         var x = d3.scaleLinear()
@@ -249,9 +249,9 @@ class MDS_view extends React.Component {
             .domain([0, 10])
             .range([1, 10]);
 
-        let json_data = this.state.data;
-        let outerRadius = await this.normalization(json_data.user_volume, 1000, 500) * 100;
-        let inner_circle_radius = outerRadius / 10;
+        // let json_data = this.state.data;
+        // let outerRadius = await this.normalization(json_data.user_volume, 1000, 500) * 100;
+        // let inner_circle_radius = outerRadius / 10;
 
         this.data = data;
 
@@ -280,11 +280,11 @@ class MDS_view extends React.Component {
         //     .attr("stroke", "black")
 
 
-        let pie = d => d3.arc()
-            .innerRadius(0)
-            .outerRadius(() => { return z(d.user_volume) })
-            .startAngle(d.pie.startAngle)
-            .endAngle(d.pie.endAngle)
+        // let pie = d => d3.arc()
+        //     .innerRadius(0)
+        //     .outerRadius(() => { return z(d.user_volume) })
+        //     .startAngle(d.pie.startAngle)
+        //     .endAngle(d.pie.endAngle)
 
         let pieBig = d => d3.arc()
             .innerRadius(0)
@@ -378,32 +378,32 @@ class MDS_view extends React.Component {
             });
 
 
-        const slice = pg
-            // .data()
-            // .data(d => {
-            //     // console.log(d)
-            //     d['values'] = [Math.random(2)]
-            //     d['p'] = d.x;
-            //     d['total'] = this.getRandomInt(2);
-            //     d['ir'] = d.r / 10
+        // const slice = pg
+        //     // .data()
+        //     // .data(d => {
+        //     //     // console.log(d)
+        //     //     d['values'] = [Math.random(2)]
+        //     //     d['p'] = d.x;
+        //     //     d['total'] = this.getRandomInt(2);
+        //     //     d['ir'] = d.r / 10
 
-            //     // console.log(d3.pie()(d.values).map(p => ({ pie: p, r: d.r }))[0])
-            //     // temp.push(d3.pie()(d.values).map(p => ({ pie: p, r: d.r }))[0])
-            //     // console.log(d3.pie()(d.values).map(p => ({ pie: p, total: d.total })))
-            //     return d3.pie()(d.values).map(p => ({ pie: p, r: d.r }))
-            // })
-            // .enter()
-            .append("path")
-            .attr("clicked", "false")
-            .attr("id", d => { return ("p" + d.name) })
-            .attr("d", d => { return pieSmall(d)() })
-            .attr("opacity", 1)
-            .style("stroke", "black")
-            .style("stroke-width", "1.25px")
-            .attr("fill", d => {
-                return anomalyColor(d.anamoly)
-            })
-            .attr("transform", "translate(15," + 0 + ")")
+        //     //     // console.log(d3.pie()(d.values).map(p => ({ pie: p, r: d.r }))[0])
+        //     //     // temp.push(d3.pie()(d.values).map(p => ({ pie: p, r: d.r }))[0])
+        //     //     // console.log(d3.pie()(d.values).map(p => ({ pie: p, total: d.total })))
+        //     //     return d3.pie()(d.values).map(p => ({ pie: p, r: d.r }))
+        //     // })
+        //     // .enter()
+        //     .append("path")
+        //     .attr("clicked", "false")
+        //     .attr("id", d => { return ("p" + d.name) })
+        //     .attr("d", d => { return pieSmall(d)() })
+        //     .attr("opacity", 1)
+        //     .style("stroke", "black")
+        //     .style("stroke-width", "1.25px")
+        //     .attr("fill", d => {
+        //         return anomalyColor(d.anamoly)
+        //     })
+        //     .attr("transform", "translate(15," + 0 + ")")
 
 
 
@@ -411,7 +411,7 @@ class MDS_view extends React.Component {
 
         pg.on('click', async (e, t) => {
 
-            let temp = pg.selectAll("#g" + t.name)
+            // let temp = pg.selectAll("#g" + t.name)
             // temp
             //     .attr("fill", "red")
             //     .style("opacity", "0.5")
@@ -419,7 +419,7 @@ class MDS_view extends React.Component {
 
 
             let click = document.getElementById("p" + t.name)//document.getElementById('clicked');
-            var select = document.querySelector('#' + "p" + t.name)
+            // var select = document.querySelector('#' + "p" + t.name)
             // console.log(select.getAttribute("clicked"))
 
             let clickState = click.getAttribute("clicked")
@@ -459,41 +459,41 @@ class MDS_view extends React.Component {
                 // .attr("opacity", 1)
                 // .style("stroke", "black")
 
-                var lines = d3.select("#g" + t.name)
-                    .append("line")
-                    .attr("x1", 0)
-                    .attr("y1", 0)
-                    .attr("y2", function (d) {
-                        // d['start_time'] = new Date("2012-05-24T18:25:43.511Z")
-                        return Math.sin(clockToRad((d.start_time.getHours() - 3), -1)) * (13.5)
-                    })
-                    .attr("x2", function (d) {
-                        // d['start_time'] = new Date("2012-05-24T18:25:43.511Z")
-                        return Math.cos(clockToRad((d.start_time.getHours() - 3), -1)) * (13.5)
-                    })
-                    .attr("stroke", "black")
-                    .attr("transform", "translate(15," + 0 + ")")
-                    .attr("stroke-width", 1)  // .attr("transform", `translate(${ transform_x }, ${ transform_y })`);
+                // var lines = d3.select("#g" + t.name)
+                //     .append("line")
+                //     .attr("x1", 0)
+                //     .attr("y1", 0)
+                //     .attr("y2", function (d) {
+                //         // d['start_time'] = new Date("2012-05-24T18:25:43.511Z")
+                //         return Math.sin(clockToRad((d.start_time.getHours() - 3), -1)) * (13.5)
+                //     })
+                //     .attr("x2", function (d) {
+                //         // d['start_time'] = new Date("2012-05-24T18:25:43.511Z")
+                //         return Math.cos(clockToRad((d.start_time.getHours() - 3), -1)) * (13.5)
+                //     })
+                //     .attr("stroke", "black")
+                //     .attr("transform", "translate(15," + 0 + ")")
+                //     .attr("stroke-width", 1)  // .attr("transform", `translate(${ transform_x }, ${ transform_y })`);
 
-                var lines = d3.select("#g" + t.name)//.selectAll(null)
-                    //.data(pie([json_data]))
-                    //.enter()
-                    .append("line")
-                    .attr("x1", 0)
-                    .attr("y1", 0)
-                    .attr("y2", function (d) {
-                        // console.log(d)
-                        // d["end_time"] = new Date("2012-05-24T23:25:43.511Z")
-                        // console.log(d.end_time.getHours(), d.start_time.getHours())
-                        return Math.sin(clockToRad((d.end_time.getHours() - 3), -1)) * (13.5)
-                    })
-                    .attr("x2", function (d) {
-                        // d["end_time"] = new Date("2012-05-24T23:25:43.511Z")
-                        return Math.cos(clockToRad((d.end_time.getHours() - 3), -1)) * (13.5)
-                    })
-                    .attr("stroke", "black")
-                    .attr("transform", "translate(15," + 0 + ")")
-                    .attr("stroke-width", 1)
+                // lines = d3.select("#g" + t.name)//.selectAll(null)
+                //     //.data(pie([json_data]))
+                //     //.enter()
+                //     .append("line")
+                //     .attr("x1", 0)
+                //     .attr("y1", 0)
+                //     .attr("y2", function (d) {
+                //         // console.log(d)
+                //         // d["end_time"] = new Date("2012-05-24T23:25:43.511Z")
+                //         // console.log(d.end_time.getHours(), d.start_time.getHours())
+                //         return Math.sin(clockToRad((d.end_time.getHours() - 3), -1)) * (13.5)
+                //     })
+                //     .attr("x2", function (d) {
+                //         // d["end_time"] = new Date("2012-05-24T23:25:43.511Z")
+                //         return Math.cos(clockToRad((d.end_time.getHours() - 3), -1)) * (13.5)
+                //     })
+                //     .attr("stroke", "black")
+                //     .attr("transform", "translate(15," + 0 + ")")
+                //     .attr("stroke-width", 1)
 
                 // click.setAttribute("clicked", "true")
                 // select.setAttribute("clicked", "true")
@@ -566,37 +566,37 @@ class MDS_view extends React.Component {
         //     .attr("opacity", 1)
 
 
-        var tickLength = 10;
-        var circleDegree = 360;
+        // var tickLength = 10;
+        // var circleDegree = 360;
 
 
-        function degToRad(degrees) {
-            return degrees * Math.PI / 180;
-        }
+        // function degToRad(degrees) {
+        //     return degrees * Math.PI / 180;
+        // }
 
-        function getCoordFromCircle(deg, cx, cy, r) {
-            var rad = degToRad(deg);
-            var x = cx + r * Math.cos(rad);
-            var y = cy + r * Math.sin(rad);
-            return [x, y];
-        }
+        // function getCoordFromCircle(deg, cx, cy, r) {
+        //     var rad = degToRad(deg);
+        //     var x = cx + r * Math.cos(rad);
+        //     var y = cy + r * Math.sin(rad);
+        //     return [x, y];
+        // }
 
-        function splitDegrees(num) {
-            var angle = circleDegree / num;
-            var degrees = [];
+        // function splitDegrees(num) {
+        //     var angle = circleDegree / num;
+        //     var degrees = [];
 
-            for (var ang = 0; ang < circleDegree; ang += angle) {
-                degrees.push(ang);
-            }
+        //     for (var ang = 0; ang < circleDegree; ang += angle) {
+        //         degrees.push(ang);
+        //     }
 
-            return degrees;
-        }
+        //     return degrees;
+        // }
 
-        function clockToRad(clock, direction) {
-            var unit = 360 / 12;
-            var degree = direction > 0 ? unit * clock : unit * clock - 360;
-            return degToRad(degree);
-        }
+        // function clockToRad(clock, direction) {
+        //     var unit = 360 / 12;
+        //     var degree = direction > 0 ? unit * clock : unit * clock - 360;
+        //     return degToRad(degree);
+        // }
     }
 
     render() {

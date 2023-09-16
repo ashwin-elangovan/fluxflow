@@ -2,10 +2,10 @@ import React from 'react';
 import * as d3 from "d3";
 // import Papa from 'papaparse'
 // import myData from '/data/HeatMap/changed.csv';
-import axios from "axios";
-import treeData from './second'
-import Circle from './circle';
-import { action, connect } from 'react-redux'
+// import axios from "axios";
+// import treeData from './second'
+// import Circle from './circle';
+import { connect } from 'react-redux'
 // import { decrement } from './redux/reducers/reducerSlice'
 import * as actionTypes from './redux/actions/actionType'
 import cloneDeep from 'clone-deep'
@@ -13,7 +13,7 @@ import cloneDeep from 'clone-deep'
 
 class DendoNewRev extends React.Component {
 
-    dataFetches; data;
+    dataFetches;
     constructor(props) {
         super(props)
         this.state = {
@@ -87,7 +87,7 @@ class DendoNewRev extends React.Component {
                 continue
             }
             // console.log(clickState)
-            if (clickState == "false") {
+            if (clickState === "false") {
                 d3.selectAll("#z" + temp[i].name).attr("d", null)
                 d3.selectAll("#z" + temp[i].name).attr("d", d => { return pieBig(d)() })
                 // document.getElementById('z' + temp[i].name).setAttribute("clicked", "true")
@@ -100,24 +100,24 @@ class DendoNewRev extends React.Component {
                     .style("fill", d => { return sentimentColor(d.data.glyph.sentiment) })
                     .attr("opacity", 1)
 
-                var lines = d3.selectAll("#h" + temp[i].name)
-                    .append("line")
-                    .attr("x1", 0)
-                    .attr("y1", 0)
-                    .attr("y2", function (d) {
-                        if (d.data) {
-                            d['start_time'] = new Date(d.data.glyph.start_time)//new Date("2012-05-24T18:25:43.511Z")
-                            return Math.sin(clockToRad((d.start_time.getHours() - 3), -1)) * (13.5)
-                        }
-                    })
-                    .attr("x2", function (d) {
-                        if (d.data) {
-                            d['start_time'] = new Date(d.data.glyph.start_time)//new Date("2012-05-24T18:25:43.511Z")
-                            return Math.cos(clockToRad((d.start_time.getHours() - 3), -1)) * (13.5)
-                        }
-                    })
-                    .attr("stroke", "black")
-                    .attr("stroke-width", 1)  // .attr("transform", `translate(${transform_x},${transform_y})`);
+                // var lines = d3.selectAll("#h" + temp[i].name)
+                //     .append("line")
+                //     .attr("x1", 0)
+                //     .attr("y1", 0)
+                //     .attr("y2", function (d) {
+                //         if (d.data) {
+                //             d['start_time'] = new Date(d.data.glyph.start_time)//new Date("2012-05-24T18:25:43.511Z")
+                //             return Math.sin(clockToRad((d.start_time.getHours() - 3), -1)) * (13.5)
+                //         }
+                //     })
+                //     .attr("x2", function (d) {
+                //         if (d.data) {
+                //             d['start_time'] = new Date(d.data.glyph.start_time)//new Date("2012-05-24T18:25:43.511Z")
+                //             return Math.cos(clockToRad((d.start_time.getHours() - 3), -1)) * (13.5)
+                //         }
+                //     })
+                //     .attr("stroke", "black")
+                //     .attr("stroke-width", 1)  // .attr("transform", `translate(${transform_x},${transform_y})`);
 
                 d3.selectAll("#h" + temp[i].name)//.selectAll(null)
                     .append("line")
@@ -184,8 +184,8 @@ class DendoNewRev extends React.Component {
         Promise.all(dataFetches).then((data) => {
             // console.log(data[1].children)
             data = data[0]
-            let mds_data = data
-            let data1 = []
+            // let mds_data = data
+            // let data1 = []
             // console.log(data, mds_data)
             // for (let i = 0; i < mds_data.length; i++) {
 
@@ -194,7 +194,7 @@ class DendoNewRev extends React.Component {
             //         data1.push(mds_data[i]);
             //     }
             // }
-            data = data
+            // data = data
             this.props.cluster_assign([data])
 
             // Create the cluster layout:
@@ -279,7 +279,7 @@ class DendoNewRev extends React.Component {
                 .style("stroke-width", "1.25px")
                 .on('click', function (e, t) {
                     let clickState = document.getElementById('z' + t.data.name).getAttribute("clicked")
-                    if (clickState == "false") {
+                    if (clickState === "false") {
                         d3.selectAll("#z" + t.data.name).attr("d", null)
                         d3.selectAll("#z" + t.data.name).attr("d", d => {
                             return pieBig(d)()
@@ -301,24 +301,24 @@ class DendoNewRev extends React.Component {
                             .style("fill", d => { return sentimentColor(d.data.glyph.sentiment) })
                             .attr("opacity", 1)
 
-                        var lines = d3.selectAll("#h" + t.data.name)
-                            .append("line")
-                            .attr("x1", 0)
-                            .attr("y1", 0)
-                            .attr("y2", function (d) {
-                                if (d.data) {
-                                    d['start_time'] = new Date(d.data.glyph.start_time)//new Date("2012-05-24T18:25:43.511Z")
-                                    return Math.sin(clockToRad((d.start_time.getHours() - 3), -1)) * (13.5)
-                                }
-                            })
-                            .attr("x2", function (d) {
-                                if (d.data) {
-                                    d['start_time'] = new Date(d.data.glyph.start_time)//new Date("2012-05-24T18:25:43.511Z")
-                                    return Math.cos(clockToRad((d.start_time.getHours() - 3), -1)) * (13.5)
-                                }
-                            })
-                            .attr("stroke", "black")
-                            .attr("stroke-width", 1)  // .attr("transform", `translate(${transform_x},${transform_y})`);
+                        // var lines = d3.selectAll("#h" + t.data.name)
+                        //     .append("line")
+                        //     .attr("x1", 0)
+                        //     .attr("y1", 0)
+                        //     .attr("y2", function (d) {
+                        //         if (d.data) {
+                        //             d['start_time'] = new Date(d.data.glyph.start_time)//new Date("2012-05-24T18:25:43.511Z")
+                        //             return Math.sin(clockToRad((d.start_time.getHours() - 3), -1)) * (13.5)
+                        //         }
+                        //     })
+                        //     .attr("x2", function (d) {
+                        //         if (d.data) {
+                        //             d['start_time'] = new Date(d.data.glyph.start_time)//new Date("2012-05-24T18:25:43.511Z")
+                        //             return Math.cos(clockToRad((d.start_time.getHours() - 3), -1)) * (13.5)
+                        //         }
+                        //     })
+                        //     .attr("stroke", "black")
+                        //     .attr("stroke-width", 1)  // .attr("transform", `translate(${transform_x},${transform_y})`);
 
                         d3.selectAll("#h" + t.data.name)//.selectAll(null)
                             .append("line")
