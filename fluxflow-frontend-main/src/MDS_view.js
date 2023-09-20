@@ -604,7 +604,7 @@ class MDS_view extends React.Component {
         return (
             <div>
                 <div className='view_text'>
-                    MDS Views
+                    MDS View
                 </div>
                 <div className='ct1'>
                     <div className='svg-container'>

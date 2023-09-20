@@ -80,7 +80,7 @@ class App extends React.Component {
           <h1>
             FluxFlow D3 visualization
           </h1>
-          <p>(This demo contains a subset of the actual data collected)</p>
+          <p>(This demo contains a subset of the actual data. To get started click on the data points in the MDS view)</p>
         </div>
 
         <div className='container'>
