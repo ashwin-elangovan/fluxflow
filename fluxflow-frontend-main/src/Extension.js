@@ -216,7 +216,7 @@ class Extension extends React.Component {
             this.d3Canvas.beginPath();
             this.d3Canvas.font = this.cityOptions['selectedFontStyle'];
 
-            let [labelXY, labelOffset, name] = [projection(this.selectedCity.geometry.coordinates), 10, `${this.selectedCity.properties.name}, Count: ${this.selectedCity.properties.pop_max}`];
+            let [labelXY, labelOffset, name] = [projection(this.selectedCity.geometry.coordinates), 10, `${this.selectedCity.properties.name}, Tweet Count: ${this.selectedCity.properties.pop_max}`];
 
             this.d3Canvas.lineWidth = this.cityOptions['selectedLineWidth'] / (this.kOptions(this.d3Trans.k));
             this.d3Canvas.lineJoin = 'round';
