@@ -24,7 +24,7 @@ class Extension extends React.Component {
     countriesData; citiesJson; citiesCSV;
 
     // Color options
-    countryOptions = { colorFill: '#bbb193', strokeFill: '#f6f0ed', lineWidth: 0.4 }
+    countryOptions = { colorFill: '#A6947D', strokeFill: '#f6f0ed', lineWidth: 0.4 }
     graticuleOptions = { colorFill: "#A58D6F", lineWidth: 0.25 }
     cityOptions = { lineWidth: 0.5, strokeStyle: '#000', colorFill: '#FF4848', selectedColorFill: '#289bde', selectedFontStyle: '18px Garamond', selectedLineWidth: 5 }
     sphereOptions = { lineWidth: 0.35 }
@@ -168,7 +168,7 @@ class Extension extends React.Component {
         this.d3Canvas.beginPath(); path({ type: 'Sphere' }); this.d3Canvas.stroke();
 
         // Sea color fill
-        this.d3Canvas.beginPath(); path(this.SPHERE); (this.d3Canvas.fillStyle = '#28536b'); this.d3Canvas.fill();
+        this.d3Canvas.beginPath(); path(this.SPHERE); (this.d3Canvas.fillStyle = '#18254A'); this.d3Canvas.fill();
 
         // Draw the countries
         this.d3Canvas.lineWidth = this.countryOptions['lineWidth'] / (this.kOptions(this.d3Trans.k));

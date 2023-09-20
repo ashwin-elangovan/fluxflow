@@ -93,7 +93,7 @@ class HeatMap extends React.Component {
         // Build color scale
         var myColor = d3.scaleSequential()
             .range([0, 1])
-            .interpolator(d3.interpolateYlGnBu)
+            .interpolator(d3.interpolateYlOrRd)
             .domain([1, 100])
 
         // create a tooltip
@@ -108,16 +108,8 @@ class HeatMap extends React.Component {
         // .style("padding", "0px")
 
         // Three function that change the tooltip when user hover / move / leave a cell
-        var mouseover = (d) => {
+        var mouseover = (event, d) => {
 
-            tooltip
-                .style("opacity", 1)
-            d3.select("#" + d.group + d.variable)
-                .style("stroke", "black")
-                .style("opacity", 1)
-
-        }
-        var mousemove = (event, d) => {
             tooltip
                 .html("<b>Tweet ID:</b> " + d.variable + `<br><b>${d.group}:</b> ` + d.value)
                 .style("opacity", 1)
@@ -125,6 +117,30 @@ class HeatMap extends React.Component {
                 .style("left", (event.x) + "px")
                 .style("top", (event.y) - 50 + "px")
                 .style("visibility", "visible")
+
+        }
+        var mousemove = (event, d) => {
+            // var matrix = this.getScreenCTM()
+            //     .translate(+ this.getAttribute("cx"), + this.getAttribute("cy"));
+            tooltip
+                .html("<b>Tweet ID:</b> " + d.variable + `<br><b>${d.group}:</b> ` + d.value)
+                .style("opacity", 1)
+                .style("position", "fixed")
+                .style("left", (event.x) + "px")
+                .style("top", (event.y) - 50 + "px")
+                .style("visibility", "visible")
+                    .style("z-index", "100")
+            // tooltip.html((y, data) => {
+            //     // console.log(e, y, data, this.d);
+            //     return `<div style="margin: 5px">Anomaly ratio: <strong> ${e.anamoly.toFixed(2)} </strong></div>
+            //             <div style="margin: 5px">Sentiment Score: <strong> ${e.sentiment.toFixed(2)} </strong></div>
+            //             <div style="margin: 5px">Start time: <strong> ${e.start_time.getHours()}H:${e.start_time.getMinutes()}M:${e.start_time.getSeconds()}S </strong></div>
+            //             <div style="margin: 5px">End time: <strong> ${e.end_time.getHours()}H:${e.end_time.getMinutes()}M:${e.end_time.getSeconds()}S </strong></div>`;
+            // })
+            //     .style("visibility", "visible")
+            //     .style("z-index", "100")
+            //     .style("left", (window.pageXOffset + matrix.e + 15) + "px")
+            //     .style("top", (window.pageYOffset + matrix.f - 30) + "px");
 
         }
         var mouseleave = (event, d) => {
@@ -136,9 +152,6 @@ class HeatMap extends React.Component {
                 .style("opacity", 0.8)
         }
 
-
-
-        // add the squares
         svg.selectAll()
             .data(data)
             .enter()
@@ -146,18 +159,49 @@ class HeatMap extends React.Component {
             .attr("x", function (d) { return x(d.variable) })
             .attr("y", function (d) { return y(d.group) })
             .attr("id", (d) => { return (d.group + d.variable) })
-            .attr("rx", 4)
-            .attr("ry", 1)
+            // .attr("rx", 4)
+            // .attr("ry", 1)
             .attr("width", x.bandwidth())
             .attr("height", y.bandwidth())
             .style("fill", function (d) { return myColor(d.value) })
             .style("stroke-width", 4)
             .style("stroke", "none")
             .style("opacity", 0.8)
-            // .on("mouseover", mouseover)
-            .on("mousemove", mousemove)
-            .on("mouseout", mouseleave)
-        // .on("mouse")
+            .on("mouseover", function (event, d) {
+                // var matrix = this.getScreenCTM()
+                //     .translate(+ this.getAttribute("cx"), + this.getAttribute("cy"));
+                // Show the tooltip on mouseenter
+                console.log("Inside mouseover", d)
+                            tooltip
+                                .html("<b>Tweet ID:</b> " + d.variable + `<br><b>${d.group}:</b> ` + d.value)
+                                .style("opacity", 1)
+                                .style("position", "fixed")
+                                .style("left", (event.x) + "px")
+                                .style("top", (event.y) - 50 + "px")
+                                .style("visibility", "visible")
+                                .style("z-index", "100")
+                        })
+            .on("mousemove", function (event, d) {
+                // Update the tooltip position on mousemove
+                console.log("Inside mousemove", d)
+                // tooltip
+                //     .style("left", (event.pageX) + "px")
+                //     .style("top", (event.pageY - 50) + "px");
+            })
+            .on("mouseout", function (event, d) {
+                // Hide the tooltip with a slight delay on mouseleave
+                console.log("Inside mouseout", d)
+                        tooltip//.html(d)
+                            .style("visibility", "hidden")
+                            .style("z-index", "-1")
+                        document.getElementById("mds_tooltip").innerHTML = ""
+                        if (this.tooltip !== undefined) {
+                            this.tooltip.style("opacity", 0)
+                            this.tooltip.style("z-index", -1);
+                        }
+            });
+
+
 
     }
     async componentDidMount() {
