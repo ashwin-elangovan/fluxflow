@@ -1,6 +1,5 @@
 import React from 'react';
 import * as d3 from "d3";
-import myData from './mds_mock.json';
 import Papa from 'papaparse'
 import { connect } from 'react-redux'
 import * as actionTypes from './redux/actions/actionType'
@@ -50,12 +49,6 @@ class MDS_view extends React.Component {
         }
     }
 
-    state = {
-        data: myData,
-        height: 250,
-        width: 400
-    }
-
     async normalization(val, max, min) { return (val - min) / ((max - min)); }
 
     getRandomInt = (max) => {
@@ -69,13 +62,13 @@ class MDS_view extends React.Component {
     async componentDidMount() {
         document.getElementById("my_svg").innerHTML = ""
         let dataFetches = [
-            d3.json('./data/datum/new/mds_view_data.json')
+            d3.json('./data/mds/mds_view_data.json')
         ];
 
         let mds_data = (await Promise.all(dataFetches).then())[0]
         // Parse local CSV file
         let o = await new Promise((resolve, reject) => {
-            Papa.parse("/data/final_topic.csv", {
+            Papa.parse("/data//mds/final_topic.csv", {
                 download: true,
                 dynamicTyping: true,
                 complete: function (results) {
@@ -85,7 +78,7 @@ class MDS_view extends React.Component {
         })
 
         let tweets_flux = await new Promise((resolve, reject) => {
-            Papa.parse("/data/fluxflow_tweets_new (1).csv", {
+            Papa.parse("/data/mds/mds_tweets.csv", {
                 download: true,
                 header: false,
                 dynamicTyping: true,
@@ -169,7 +162,7 @@ class MDS_view extends React.Component {
             .domain([0, 10])
             .range([1, 10]);
 
-        let json_data = this.state.data;
+        // let json_data = this.state.data;
         // let outerRadius = await this.normalization(json_data.user_volume, 1000, 500) * 100;
         // let inner_circle_radius = outerRadius / 10;
 
@@ -344,7 +337,6 @@ class MDS_view extends React.Component {
     }
 
     render() {
-
         return (
             <div>
                 <div className='view_text'>

@@ -9,13 +9,13 @@ const initialState = {
 
 
 // async function Fetches() {
-//     return await fetch('data/datum/new/mds_view_data.json')
+//     return await fetch('data/datum/mds_view_data.json')
 // }
 // let dataFetches = new Promise(async (resolve, reject) => {
 //     // setTimeout(() => {
 //     //     resolve("foo");
 //     // }, 300);
-//     let temp = await fetch('data/datum/new/mds_view_data.json');
+//     let temp = await fetch('data/datum/mds_view_data.json');
 //     resolve(temp)
 // }).then();
 // dataFetches = dataFetches.then()

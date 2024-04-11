@@ -1,288 +1,352 @@
-// import React from 'react';
-// import * as d3 from "d3";
-// // import Papa from 'papaparse'
-// // import myData from '/data/HeatMap/changed.csv';
-// import axios from "axios";
-// import treeData from './second'
+import React from 'react';
+import * as d3 from "d3";
+import { connect } from 'react-redux'
+import * as actionTypes from './redux/actions/actionType'
+import cloneDeep from 'clone-deep'
 
-// class Dendogram extends React.Component {
+class Dendogram extends React.Component {
 
-//     dataFetches; data;
-//     constructor(props) {
-//         super(props)
+    dataFetches; data;
+    constructor(props) {
+        super(props)
+        this.state = {
+            items: props.items
+        }
 
-//     }
+    }
+
+    async componentDidUpdate(items) {
+        var z = d3.scaleLinear()
+            .domain([0, 10])
+            .range([1, 10]);
+
+        let pieSmall = d => d3.arc()
+            .innerRadius(0)
+            .outerRadius(() => { return z(7) })
+            .startAngle(0)
+            .endAngle(360)
+
+        for (let i = 0; i < this.props.finalArr.length; i++) {
+            let test1 = this.props.mdsArr.some(el => el.name === this.props.finalArr[i].name);
+            if (test1) continue
+            let parent = document.getElementById("h" + this.props.finalArr[i].name)
+            let test = document.querySelectorAll(`[id=${"h" + this.props.finalArr[i].name}]`);
+            for (let j = 0; j < test.length; j++) {
+                parent = test[j]
+                for (let i = 0; i < parent.childNodes.length; i++) {
+                    if (parent.childNodes[i].tagName !== "path") {
+                        parent.removeChild(parent.childNodes[i]);
+                    }
+                }
+                parent.childNodes.forEach(c => {
+                    if (c.tagName !== "path") {
+                        parent.removeChild(c);
+                    }
+                })
+            }
+
+            d3.selectAll("#z" + this.props.finalArr[i].name).attr("d", null)
+            d3.selectAll("#z" + this.props.finalArr[i].name).attr("d", d => { return pieSmall(d)() })
+        }
+
+        let pieBig = d => d3.arc()
+            .innerRadius(0)
+            .outerRadius(() => { return z(14) })
+            .startAngle(0)
+            .endAngle(360)
+
+        var sentimentColor = d3.scaleLinear()
+            .domain([0, 0.05, 0.5, 0.625, 0.75, 1])
+            .range(["darkgreen", "orangered", "darkgoldenrod", "slateblue", "dodgerblue", "orange"]);
+
+        let temp = cloneDeep([...this.props.mdsArr])
+
+        for (let i = 0; i < temp.length; i++) {
+            let clickState;
+
+            try {
+                clickState = document.getElementById('p' + temp[i].name).getAttribute("clicked")
+            }
+
+            catch (e) {
+                continue
+            }
+
+            if (clickState === "false") {
+                d3.selectAll("#z" + temp[i].name).attr("d", null)
+                d3.selectAll("#z" + temp[i].name).attr("d", d => { return pieBig(d)() })
+
+                d3.selectAll("#h" + temp[i].name)
+                    .append("svg:circle")
+                    .attr("r", d => { return (14 / 3) })
+                    .style("fill", d => { return sentimentColor(d.data.glyph.sentiment) })
+                    .attr("opacity", 1)
+
+                d3.selectAll("#h" + temp[i].name)
+                    .append("line")
+                    .attr("x1", 0)
+                    .attr("y1", 0)
+                    .attr("y2", function (d) {
+                        if (d.data) {
+                            d["end_time"] = new Date(d.data.glyph.end_time)
+                            return Math.sin(clockToRad((d.end_time.getHours() - 3), -1)) * (13.5)
+                        }
+                    })
+                    .attr("x2", function (d) {
+                        if (d.data) {
+                            d["end_time"] = new Date(d.data.glyph.end_time)
+                            return Math.cos(clockToRad((d.end_time.getHours() - 3), -1)) * (13.5)
+                        }
+                    })
+                    .attr("stroke", "black")
+                    .attr("stroke-width", 1)
+            }
+        };
+
+        function degToRad(degrees) {
+            return degrees * Math.PI / 180;
+        }
+
+        function clockToRad(clock, direction) {
+            var unit = 360 / 12;
+            var degree = direction > 0 ? unit * clock : unit * clock - 360;
+            return degToRad(degree);
+        }
+    }
 
 
+    async componentDidMount(items) {
+        var width = 350
+        var height = 727
+        var svg = d3.select("#dendogramNew")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .append('g')
+            .attr("transform", "translate(20,0)");  // bit of margin on the left = 40
 
-//     async componentDidMount() {
-//         // console.log(myData)
-//         // let data1 = (await axios.get("/data/Dendogram/second.js").then()).data
-//         console.log(treeData)
-//         // this.dataFetches = [
-//         //     d3.csv('./data/HeatMap/changed.csv')
-//         // ];
+        let dataFetches = [
+            d3.json('./data/cluster/cluster_view_data.json')
 
-//         // Promise.all(this.dataFetches).then((data) => {
-//         // })
-//         var margin = { top: 250, right: 90, bottom: 30, left: 90 },
-//             width = 190 - margin.left - margin.right,
-//             height = 600;
+        ];
+        Promise.all(dataFetches).then((data) => {
+            this.props.cluster_assign([data])
 
-//         var svg = d3
-//             .select("#dendogram")
-//             .append("svg")
-//             .attr("width", width + margin.right + margin.left)
-//             .attr("height", height + margin.top + margin.bottom)
-//             .append("g")
-//             .attr("transform", "translate(" + 0 + "," + margin.top + ")");
+            // Create the cluster layout
+            var cluster = d3.cluster()
+                .size([height, width - 100]);
 
-//         var arc = d3.arc().outerRadius(10).innerRadius(0);
-//         var pie = d3
-//             .pie()
-//             .value(function (d) {
-//                 return d.data.value;
-//             })
-//             .sort(null);
+            // Give the data to this cluster layout:
+            var root = d3.hierarchy(this.props.clusterArr[0], function (d) {
+                return d.children;
+            });
 
-//         var color = d3.scaleOrdinal(d3.schemeCategory10);
+            cluster(root);
+            var anomalyColor = d3.scaleLinear()
+                .domain([0, 0.5, 0.625, 0.75, 1])
+                .range(["darkorchid", "peru", "darkturquoise", "azure", "darksalmon", "grey"]);
+            var sentimentColor = d3.scaleLinear()
+                .domain([0, 0.05, 0.5, 0.625, 0.75, 1])
+                .range(["darkgreen", "orangered", "darkgoldenrod", "slateblue", "dodgerblue", "orange"]);
 
-//         const categories = [];
-//         const setCategory = (d) => {
-//             if (d.name && d.children) {
-//                 categories.push(d.name);
-//             }
+            // Add the links between nodes:
+            svg.selectAll('path')
+                .data(root.descendants().slice(1))
+                .enter()
+                .append('path')
+                .attr("d", function (d) {
+                    return "M" + d.y + "," + d.x
+                        + "C" + (d.parent.y + 20) + "," + d.x
+                        + " " + (d.parent.y + 30) + "," + d.parent.x // 50 and 150 are coordinates of inflexion, play with it to change links shape
+                        + " " + d.parent.y + "," + d.parent.x;
+                })
+                .style("fill", 'none')
+                .attr("stroke", (d) => {
+                    return anomalyColor(1 - d.data.glyph.anamoly)
+                })
+                .style("stroke-width", "1.5px")
+            var z = d3.scaleLinear()
+                .domain([0, 10])
+                .range([1, 10]);
 
-//             if (d.children) {
-//                 d.children.forEach((d) => {
-//                     setCategory(d);
-//                 });
-//             } else {
-//                 categories.push(d.name);
-//             }
-//         };
+            let pieBig = d => d3.arc()
+                .innerRadius(0)
+                .outerRadius(() => { return z(14) })
+                .startAngle(0)
+                .endAngle(360)
+
+            let pieSmall = d => d3.arc()
+                .innerRadius(0)
+                .outerRadius(() => { return z(7) })
+                .startAngle(0)
+                .endAngle(360)
+
+            // Add a circle for each node.
+            const pd = svg.selectAll('g')
+                .data(() => { return root.descendants() })
+                .enter()
+                .append('g')
+                .attr('id', (d) => { return ("h" + d.data.name) })
+
+                .attr("transform", function (d) {
+                    return "translate(" + d.y + "," + d.x + ")"
+                })
+                .append("path")
+                .attr('id', (d) => { return 'z' + d.data.name })
+                .attr("clicked", "false")
+            pd
+                .attr("d", d => {
+                    d['values'] = [Math.random(2)]
+                    let t = d3.pie()(d.values).map(p => ({ p }))
+                    return pieSmall(t)()
+                })
+                .attr("fill", d => {
+                    return anomalyColor(d.data.glyph.anamoly)
+                })
+                .style("stroke", "black")
+                .style("stroke-width", "1.25px")
+                .on('click', function (e, t) {
+                    let clickState = document.getElementById('z' + t.data.name).getAttribute("clicked")
+                    if (clickState === "false") {
+                        d3.selectAll("#z" + t.data.name).attr("d", null)
+                        d3.selectAll("#z" + t.data.name).attr("d", d => {
+                            return pieBig(d)()
+                        })
+                        d3.selectAll("#h" + t.data.name)
+                            .append("svg:circle")
+                            .attr("r", d => { return (14 / 3) })
+                            .style("fill", d => { console.log(d.data); return sentimentColor(d.data.glyph.sentiment) })
+                        document.getElementById('z' + t.data.name).setAttribute("clicked", "true")
+
+                        d3.selectAll("#z" + t.data.name)
+                            .append("svg:circle")
+                            .attr("r", d => { return (14 / 1) })
+                            .style("fill", d => { return sentimentColor(d.data.glyph.sentiment) })
+                            .attr("opacity", 1)
+
+                        d3.selectAll("#h" + t.data.name)
+                            .append("line")
+                            .attr("x1", 0)
+                            .attr("y1", 0)
+                            .attr("y2", function (d) {
+                                if (d.data) {
+                                    d["end_time"] = new Date(d.data.glyph.end_time)
+                                    return Math.sin(clockToRad((d.end_time.getHours() - 3), -1)) * (13.5)
+                                }
+                            })
+                            .attr("x2", function (d) {
+                                if (d.data) {
+                                    d["end_time"] = new Date(d.data.glyph.end_time)
+                                    return Math.cos(clockToRad((d.end_time.getHours() - 3), -1)) * (13.5)
+                                }
+                            })
+                            .attr("stroke", "black")
+                            .attr("stroke-width", 1)
+                    }
+                    else {
+                        let parent = document.getElementById("h" + t.data.name)
+                        let test = document.querySelectorAll(`[id=${"h" + t.data.name}]`);
+                        for (let j = 0; j < test.length; j++) {
+                            parent = test[j]
+
+                            for (let i = 0; i < parent.childNodes.length; i++) {
+                                if (parent.childNodes[i].tagName !== "path") {
+                                    parent.removeChild(parent.childNodes[i]);
+                                }
+                            }
+                            parent.childNodes.forEach(c => {
+                                if (c.tagName !== "path") {
+                                    parent.removeChild(c);
+                                }
+                            })
+                        }
+                        d3.selectAll("#z" + t.data.name).attr("d", null)
+                        d3.selectAll("#z" + t.data.name).attr("d", d => { return pieSmall(d)() })
+                        document.getElementById('z' + t.data.name).setAttribute("clicked", "false")
+                    }
+                })
+            var tooltip = d3.select("#dendo_tooltip")
+                .style("position", "absolute")
+                .style("visibility", "hidden")
+                .style("z-index", "-1")
+
+            pd.on("mousemove", function (d, e) {
+                var matrix = this.getScreenCTM()
+                    .translate(+ this.getAttribute("cx"), + this.getAttribute("cy"));
 
 
-//         color.domain(categories);
+                tooltip.html((y, data) => {
+                    return `<div>Keywords clustered: </div>
+                            <div> <strong> ${e.data.glyph.keywords.toString()} </strong> </div>
+                       `})
+                    .style("visibility", "visible")
+                    .style("z-index", "100")
+                    .style("left", (window.pageXOffset + matrix.e + 15) + "px")
+                    .style("top", (window.pageYOffset + matrix.f - 30) + "px")
+            })
+                .on('mouseout', function (d, e) {
+                    tooltip
+                        .style("visibility", "hidden")
+                        .style("z-index", "-1")
+                    document.getElementById("mds_tooltip").innerHTML = ""
+                    if (this.tooltip !== undefined) {
+                        this.tooltip.style("opacity", 0)
+                        this.tooltip.style("z-index", -1);
+                    }
+                });
+        })
 
-//         setCategory(treeData);
+        function degToRad(degrees) {
+            return degrees * Math.PI / 180;
+        }
 
-//         var i = 0,
-//             duration = 750,
-//             root;
+        function clockToRad(clock, direction) {
+            var unit = 360 / 12;
+            var degree = direction > 0 ? unit * clock : unit * clock - 360;
+            return degToRad(degree);
+        }
+    }
 
-//         // declares a tree layout and assigns the size
-//         var treemap = d3.tree().size([height, width]);
+    render() {
+        return (
+            <div id='dendogramNew'>
+            <div id="dendo_tooltip" className='tooltip-container'>
 
-//         // Assigns parent, children, height, depth
-//         root = d3.hierarchy(treeData, function (d) {
-//             return d.children;
-//         });
+            </div>
+                <div id="dendo_text" className='view_text'>
+                Cluster View
+            </div>
+        </div>
+        )
+    }
 
-//         root.x0 = height / 2;
-//         root.y0 = 0;
+}
 
-//         // Collapse after the second level
-//         // root.children.forEach(collapse);
-//         console.log(root)
-//         update(root);
-//         // Collapse the node and all it's children
-//         function collapse(d) {
-//             if (d.children) {
-//                 d._children = d.children;
-//                 d._children.forEach(collapse);
-//                 d.children = null;
-//             }
-//         }
 
-//         function update(source) {
+function mapStateToProps(state) {
+    return {
+        finalArr: state.reducer.finalArr,
+        mdsArr: state.reducer.mdsArr,
+        clusterArr: state.reducer.clusterArr,
+    }
+}
 
-//             // Assigns the x and y position for the nodes
-//             var treeData = treemap(root);
+function mapDispatchToProps(dispatch) {
+    return {
+        assign: (data) => {
+            dispatch({ type: actionTypes.ASSIGN, data: data })
+        },
+        mds_assign: (data) => {
+            dispatch({ type: actionTypes.MDS_ASSIGN, data: data })
+        },
+        cluster_assign: (data) => {
+            dispatch({ type: actionTypes.CLUSTER_ASSIGN, data: data })
+        },
+    }
+};
 
-//             // Compute the new tree layout.
-//             var nodes = treeData.descendants(),
-//                 links = treeData.descendants().slice(1);
 
-//             // Normalize for fixed-depth.
-//             nodes.forEach(function (d) {
-//                 d.y = d.depth * 180;
-//             });
-
-//             // ****************** Nodes section ***************************
-
-//             function drawPie(d) {
-//                 if (d.children) {
-//                     d3.select(this)
-//                         .selectAll("path")
-//                         .data(pie(d.children))
-//                         .enter()
-//                         .append("path")
-//                         .attr("d", arc)
-//                         .attr("fill", function (d, i) {
-//                             return color(d.data.data.name);
-//                         });
-//                 }
-//             }
-
-//             // Update the nodes...
-//             var node = svg.selectAll("g.node").data(nodes, function (d) {
-//                 return d.id || (d.id = ++i);
-//             });
-
-//             // Enter any new modes at the parent's previous position.
-//             var nodeEnter = node
-//                 .enter()
-//                 .append("g")
-//                 .attr("class", "node")
-//                 .attr("transform", function (d) {
-//                     return "translate(" + source.y0 + "," + source.x0 + ")";
-//                 })
-//                 .on("click", click);
-
-//             // Add Circle for the nodes
-//             nodeEnter
-//                 .append("circle")
-//                 .attr("class", "node")
-//                 .attr("r", 1e-6)
-//                 .style("fill", function (d) {
-//                     return d._children ? "lightsteelblue" : "#fff";
-//                 })
-//                 .attr("display", (d) => (d.children ? "none" : "block"));
-
-//             // Add labels for the nodes
-//             nodeEnter
-//                 .append("text")
-//                 .attr("dy", ".35em")
-//                 .attr("x", function (d) {
-//                     return d.children || d._children ? -40 : 20;
-//                 })
-//                 .attr("text-anchor", function (d) {
-//                     return d.children || d._children ? "end" : "start";
-//                 })
-//                 .text(function (d) {
-//                     return "";
-//                 });
-
-//             nodeEnter.each(drawPie);
-
-//             // UPDATE
-//             var nodeUpdate = nodeEnter.merge(node);
-
-//             // Transition to the proper position for the node
-//             nodeUpdate
-//                 .transition()
-//                 .duration(duration)
-//                 .attr("transform", function (d) {
-//                     return "translate(" + d.y + "," + d.x + ")";
-//                 });
-
-//             // Update the node attributes and style
-//             nodeUpdate
-//                 .select("circle.node")
-//                 .attr("r", 10)
-//                 .style("fill", function (d) {
-//                     return d._children ? "lightsteelblue" : "#fff";
-//                 });
-//             // .attr("cursor", "pointer");
-
-//             // Remove any exiting nodes
-//             var nodeExit = node
-//                 .exit()
-//                 .transition()
-//                 .duration(duration)
-//                 .attr("transform", function (d) {
-//                     return "translate(" + source.y + "," + source.x + ")";
-//                 })
-//                 .remove();
-
-//             // On exit reduce the node circles size to 0
-//             nodeExit.select("circle").attr("r", 1e-6);
-
-//             // On exit reduce the opacity of text labels
-//             nodeExit.select("text").style("fill-opacity", 1e-6);
-
-//             // ****************** links section ***************************
-
-//             // Update the links...
-//             var link = svg.selectAll("path.link").data(links, function (d) {
-//                 return d.id;
-//             });
-
-//             // Enter any new links at the parent's previous position.
-//             var linkEnter = link
-//                 .enter()
-//                 .insert("path", "g")
-//                 .attr("class", "link")
-//                 .attr("d", function (d) {
-//                     var o = { x: source.x0, y: source.y0 };
-//                     return diagonal(o, o);
-//                 })
-//                 .style("fill", "none")
-//                 .attr("stroke", (d, i) => {
-//                     return color(d.data.name);
-//                 });
-
-//             // UPDATE
-//             var linkUpdate = linkEnter.merge(link);
-
-//             // Transition back to the parent element position
-//             linkUpdate
-//                 .transition()
-//                 .duration(duration)
-//                 .attr("d", function (d) {
-//                     return diagonal(d, d.parent);
-//                 });
-
-//             // Remove any exiting links
-//             var linkExit = link
-//                 .exit()
-//                 .transition()
-//                 .duration(duration)
-//                 .attr("d", function (d) {
-//                     var o = { x: source.x, y: source.y };
-//                     return diagonal(o, o);
-//                 })
-//                 .remove();
-
-//             // Store the old positions for transition.
-//             nodes.forEach(function (d) {
-//                 d.x0 = d.x;
-//                 d.y0 = d.y;
-//             });
-
-//             // Creates a curved (diagonal) path from parent to the child nodes
-//             function diagonal(s, d) {
-//                 let path = `M ${s.y} ${s.x}
-//               C ${(s.y + d.y) / 2} ${s.x},
-//                 ${(s.y + d.y) / 2} ${d.x},
-//                 ${d.y} ${d.x}`;
-
-//                 return path;
-//             }
-
-//             // Toggle children on click.
-//             function click(event, d) {
-//                 // if (d.children) {
-//                 //   d._children = d.children;
-//                 //   d.children = null;
-//                 // } else {
-//                 //   d.children = d._children;
-//                 //   d._children = null;
-//                 // }
-//                 update(d);
-//             }
-//         }
-
-//     }
-
-//     render() {
-//         return (
-//             <div id='dendogram'>
-
-//             </div>
-//         )
-//     }
-// }
-
-// export default Dendogram;
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(Dendogram);

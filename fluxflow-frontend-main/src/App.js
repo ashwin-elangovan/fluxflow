@@ -5,7 +5,7 @@ import MDS_view from './MDS_view';
 import BeeSwarm from './Beeswarm';
 import Extension from './Extension';
 import HeatMap from './Heatmap';
-import DendoNewRev from './DendonewRev';
+import Dendogram from './Dendogram';
 import { connect } from 'react-redux'
 import * as actionTypes from './redux/actions/actionType'
 
@@ -21,18 +21,18 @@ class App extends React.Component {
   }
   async componentWillMount() {
     let MDS_data = await axios
-      .get('data/datum/new/mds_view_data.json')
+      .get('data/mds/mds_view_data.json')
       .then()
       .catch(error => console.log(error));
 
 
     let cluster_data = await axios
-      .get('data/datum/new/cluster_view_data.json')
+      .get('data/cluster/cluster_view_data.json')
       .then()
       .catch(error => console.log(error));
 
     let bee_swarm_data = await axios
-      .get('data/datum/new/full_tweets_data.json')
+      .get('data/beeswarm/full_tweets_data.json')
       .then()
       .catch(error => console.log(error));
 
@@ -54,13 +54,13 @@ class App extends React.Component {
           <h1>
             FluxFlow D3 visualization
           </h1>
-          <p>(This demo contains a subset of the actual data. To get started click on the data points in the MDS view)</p>
+          <p>(This demo contains a preloaded subset of the actual data. To get started click on the data points in the MDS view)</p>
         </div>
 
         <div className='container'>
           <div className='row'>
             <div className='child1'>
-              {this.props.clusterArr.length && <DendoNewRev />}
+              {this.props.clusterArr.length && <Dendogram />}
             </div>
             <div className='child2'>
               {this.props.fullTweets.length && <BeeSwarm />}
