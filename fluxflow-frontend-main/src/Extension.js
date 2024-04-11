@@ -1,21 +1,16 @@
-import axios from "axios";
+
 import React from 'react';
 import * as d3 from "d3";
-
-import myData from './mds_mock.json';
-import Papa from 'papaparse'
-import versor from "versor";
 import * as topojson from "topojson-client";
-import { event as currentEvent, mouse, select } from 'd3-selection';
+import { event as currentEvent} from 'd3-selection';
 import geoZoom from "d3-geo-zoom";
 import {
     findNearestCity,
     drag,
 } from './ExtensionHelper';
 
-import { action, connect } from 'react-redux'
+import { connect } from 'react-redux'
 import * as actionTypes from './redux/actions/actionType'
-import cloneDeep from 'clone-deep'
 
 class Extension extends React.Component {
 
@@ -364,8 +359,6 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
     return {
-        // dispatching plain actions
-        // increment: () => dispatch({ type: 'INCREMENT' }),
         assign: (data) => {
             dispatch({ type: actionTypes.ASSIGN, data: data })
         },
@@ -380,7 +373,6 @@ function mapDispatchToProps(dispatch) {
         full_tweets_assign: (data) => {
             dispatch({ type: actionTypes.FULL_TWEETS_ASSIGN, data: data })
         },
-        // reset: () => dispatch({ type: 'RESET' }),
     }
 };
 

@@ -1,27 +1,18 @@
-import axios from "axios";
 import React from 'react';
 import * as d3 from "d3";
-import myData from './mds_mock.json';
 import Papa from 'papaparse'
-import { action, connect } from 'react-redux'
+import { connect } from 'react-redux'
 import * as actionTypes from './redux/actions/actionType'
 import cloneDeep from 'clone-deep'
 import './App.css';
-/*
 
-date = created at
+/*
+date = created_at
 category = name
 thread size = length
-
-
 */
 
 class BeeSwarm extends React.Component {
-
-    constructor(props) {
-        super(props)
-
-    }
 
     width = 930;
     height = 720;
@@ -42,59 +33,25 @@ class BeeSwarm extends React.Component {
     async componentDidUpdate() {
         document.getElementById("svg-container-1").innerHTML = ""
         let fullTweets = cloneDeep([...this.props.fullTweets])
-        // console.log(fullTweets[0])
         fullTweets = fullTweets[0]
         let beeSwarmChart = [];
         for (let i = 0; i < this.props.mdsArr.length; i++) {
             let childrens = this.props.mdsArr[i].childrens;
-            // console.log(childrens)
             for (let j = 0; j < childrens.length; j++) {
-
                 let temp_tweets = {
                     "id": childrens[j],
-                    "date": new Date(fullTweets[childrens[j]].created_at),//"2009-06-01T13:06:17.000Z",
-                    "sentiment": fullTweets[childrens[j]].sentiment_score,// -0.4941451065043396,
+                    "date": new Date(fullTweets[childrens[j]].created_at),
+                    "sentiment": fullTweets[childrens[j]].sentiment_score,
                     "category": this.props.mdsArr[i].name,
                     "thread_size": fullTweets[childrens[j]].followers_count,
                     "start_time": this.props.mdsArr[i].start_time,
                     "end_time": this.props.mdsArr[i].end_time
                 }
                 beeSwarmChart.push(temp_tweets)
-
-                // if (childrens[j] === this.props.mdsArr[i].name) {
-                //     mds_data.push(childrens[j])
-                // }
-
             }
-            // console.log(this.props.mdsArr[i], mds_data)
         }
-        // console.log(beeSwarmChart)
         this.beeSwarmChart = beeSwarmChart;
         this.componentDidMount()
-        // let beeSwarmChart = [];
-        /*
-            {
-                "id": 1990953734,
-                "date": "2009-06-01T13:06:17.000Z",
-                "sentiment": -0.4941451065043396,
-                "category": "Category_1",
-                "thread_size": 7,
-                "index": 0,
-                "x": 455.26411979219955,
-                "y": 530.6584746438754,
-                "vy": 0.10042579721943727,
-                "vx": -0.023430574714165892
-            }
-        */
-        // for (let i = 0; i < mds_data.length; i++) {
-        //     // console.log(mds_data[i].childrens)
-        //     for (let j = 0; j < mds_data[i].childrens.length; j++) {
-
-        //     }
-        // }
-        // console.log(this.props.fullTweets, this.props.mdsArr)
-        // for(let i=0; i<this.pr)
-
     }
     async componentDidMount() {
 
@@ -104,14 +61,11 @@ class BeeSwarm extends React.Component {
                 dynamicTyping: true,
                 complete: function (results) {
                     resolve(results.data)
-                    // return results
                 }
             });
         })
-        // this.data = this.data.slice(1, -1);
-        this.data = this.beeSwarmChart //this.data.slice(1, -1);
+        this.data = this.beeSwarmChart
 
-        // console.log(this.data)
         document.getElementById("svg-container-1").innerHTML = ""
         this.svg = d3
             .select("#svg-container-1")
@@ -128,25 +82,19 @@ class BeeSwarm extends React.Component {
     }
 
     async drawBeeswarmChart(data) {
-        if (data.length == 0) {
+        if (data.length === 0) {
             return
         }
 
         for (let i = 0; i < this.data.length; i++) {
-            // console.log(this.data[i].date)
-            // this.timedata.push(new Date(this.data[i][1]))
-            this.timedata.push(new Date(this.data[i].date))//this.timedata.push(new Date(this.data[i][1]))
-            let temp = {
-                id: this.data[i][0],
-                date: new Date(this.data[i][1]),
-                sentiment: this.data[i][2],
-                category: this.data[i][3],
-                // category: this.data[3],
-                thread_size: this.data[i][4]
-            }
-            // console.log(temp)
-            // this.data[i] = temp;
-            // console.log(this.data[i])
+            this.timedata.push(new Date(this.data[i].date))
+            // let temp = {
+            //     id: this.data[i][0],
+            //     date: new Date(this.data[i][1]),
+            //     sentiment: this.data[i][2],
+            //     category: this.data[i][3],
+            //     thread_size: this.data[i][4]
+            // }
         }
 
         this.data = this.beeSwarmChart
@@ -154,9 +102,8 @@ class BeeSwarm extends React.Component {
         let categories = Array.from(new Set(this.data.map((d) => d.category)))
 
         let maxDate = new Date(Math.max(...this.timedata));
-        const minDate = new Date(Math.min(...this.timedata));
+        let minDate = new Date(Math.min(...this.timedata));
 
-        // maxDate = new Date(maxDate); //.setMonth(maxDate.getMonth() + 1)
         let xScale = d3
             .scaleTime()
             .domain([new Date(minDate), new Date(maxDate)])
@@ -176,12 +123,6 @@ class BeeSwarm extends React.Component {
             .domain([0, 10])
             .range([1, 10]);
 
-        let pieBig = d => d3.arc()
-            .innerRadius(0)
-            .outerRadius(() => { return z(14) })
-            .startAngle(0)
-            .endAngle(360)
-
         var anomalyColor = d3.scaleLinear()
             .domain([0, 0.5, 0.625, 0.75, 1])
             .range(["darkorchid", "peru", "darkturquoise", "azure", "darksalmon", "grey"]);
@@ -199,25 +140,12 @@ class BeeSwarm extends React.Component {
             .append("g")
             .attr("id", "glyphBee")
             .selectAll(".lines")
-        // .data(() => { console.log(this.props.mdsArr.length); return cloneDeep([...this.props.mdsArr]) })
-        // .enter()
 
         y.data(() => {
             return cloneDeep([...this.props.mdsArr])
         })
             .enter()
             .append("circle")
-
-            // .attr("r", 7)
-            // .style("fill", "#69b3a2")
-            // .attr("stroke", "black")
-            // .style("stroke-width", 3)
-            // .attr("transform", function (d) {
-            //     return `translate(${43},${yScale(d.category)})`
-            // })
-            // .append("svg:circle")
-            // .attr("cx", transform_x)
-            // .attr("cy", transform_y)
             .attr("r", d => { return (14 / 1) })
             .style("stroke", "black")
             .style("stroke-width", "1.25px")
@@ -231,7 +159,6 @@ class BeeSwarm extends React.Component {
         })
             .enter().append("path")
             .attr("clicked", "false")
-            // .attr("id", d => { return ("p" + d.name) })
             .attr("d", d => { return pieSmall(d)() })
             .attr("opacity", 1)
             .attr("fill", d => sentimentColor(d.sentiment))
@@ -241,14 +168,10 @@ class BeeSwarm extends React.Component {
 
 
         y.select("#glyphBee")
-
-            // .enter()
-            // .data([0, 1, 2])
             .data(() => {
                 return cloneDeep([...this.props.mdsArr])
             })
             .enter()
-            // .append("svg")
             .append("line")
             .attr("x1", 0)
             .attr("y1", 0)
@@ -261,42 +184,32 @@ class BeeSwarm extends React.Component {
                 return Math.cos(clockToRad((d.start_time.getHours() - 3), -1)) * (13.5)
             })
             .attr("stroke", "black")
-            .attr("stroke-width", 1)  // .attr("transform", `translate(${transform_x},${transform_y})`);
+            .attr("stroke-width", 1)
             .attr("transform", function (d) {
                 return `translate(${35},${yScale(d.name)})`
             })
 
         y.select("#glyphBee")
-
-            // .enter()
-            // .data([0, 1, 2])
             .data(() => {
                 return cloneDeep([...this.props.mdsArr])
             })
             .enter()
-
             .append("line")
             .attr("x1", 0)
             .attr("y1", 0)
             .attr("y2", function (d) {
-
-                d["end_time"] = new Date(d.end_time)//new Date("2012-05-24T23:25:43.511Z")
-
+                d["end_time"] = new Date(d.end_time)
                 return Math.sin(clockToRad((d.end_time.getHours() - 3), -1)) * (13.5)
-                // }
             })
             .attr("x2", function (d) {
-
-                d["end_time"] = new Date(d.end_time)//new Date("2012-05-24T23:25:43.511Z")
+                d["end_time"] = new Date(d.end_time)
                 return Math.cos(clockToRad((d.end_time.getHours() - 3), -1)) * (13.5)
-                // }
             })
             .attr("stroke", "black")
             .attr("stroke-width", 1)
             .attr("transform", function (d) {
                 return `translate(${35},${yScale(d.name)})`
             })
-
 
         function degToRad(degrees) {
             return degrees * Math.PI / 180;
@@ -380,7 +293,6 @@ class BeeSwarm extends React.Component {
         }
 
         setTimeout(function () {
-            // console.log("start alpha decay");
             simulation.alphaDecay(0.1);
         }, this.DELAY_TIME);
 
@@ -388,7 +300,6 @@ class BeeSwarm extends React.Component {
         this.createZoom(xScale);
 
     }
-
 
     async createToolTip() {
         d3.selectAll(".circ")
@@ -438,20 +349,11 @@ class BeeSwarm extends React.Component {
         d3.select("#svg-container-1 svg").call(this.zoom);
     }
 
-
-
     render() {
-
         return (
             <>
-                <div className='view_text'>
-                    Tweet View
-                </div>
-
-                <div className="col-sm-12 svg-container-1 d-flex justify-content-center align-items-center" id="svg-container-1">
-
-
-                </div>
+                <div className='view_text'> Tweet View </div>
+                <div className="col-sm-12 svg-container-1 d-flex justify-content-center align-items-center" id="svg-container-1" />
             </>
         )
     }
@@ -470,8 +372,6 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
     return {
-        // dispatching plain actions
-        // increment: () => dispatch({ type: 'INCREMENT' }),
         assign: (data) => {
             dispatch({ type: actionTypes.ASSIGN, data: data })
         },
@@ -486,7 +386,6 @@ function mapDispatchToProps(dispatch) {
         full_tweets_assign: (data) => {
             dispatch({ type: actionTypes.FULL_TWEETS_ASSIGN, data: data })
         },
-        // reset: () => dispatch({ type: 'RESET' }),
     }
 };
 

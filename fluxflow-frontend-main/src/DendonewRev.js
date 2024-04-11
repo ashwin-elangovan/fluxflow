@@ -1,15 +1,8 @@
 import React from 'react';
 import * as d3 from "d3";
-// import Papa from 'papaparse'
-// import myData from '/data/HeatMap/changed.csv';
-import axios from "axios";
-import treeData from './second'
-import Circle from './circle';
-import { action, connect } from 'react-redux'
-// import { decrement } from './redux/reducers/reducerSlice'
+import { connect } from 'react-redux'
 import * as actionTypes from './redux/actions/actionType'
 import cloneDeep from 'clone-deep'
-
 
 class DendoNewRev extends React.Component {
 
@@ -21,30 +14,26 @@ class DendoNewRev extends React.Component {
         }
 
     }
+
     data = []
 
     async componentDidUpdate(items) {
-        // this.setState({ items })
-        // document.getElementById("dendogramNew").innerHTML = ""
-        // await this.componentDidMount();
         var z = d3.scaleLinear()
             .domain([0, 10])
             .range([1, 10]);
+
         let pieSmall = d => d3.arc()
             .innerRadius(0)
             .outerRadius(() => { return z(7) })
             .startAngle(0)
             .endAngle(360)
         for (let i = 0; i < this.props.finalArr.length; i++) {
-
             let test1 = this.props.mdsArr.some(el => el.name === this.props.finalArr[i].name);
             if (test1) continue
-            // console.log("after continue")
             let parent = document.getElementById("h" + this.props.finalArr[i].name)
             let test = document.querySelectorAll(`[id=${"h" + this.props.finalArr[i].name}]`);
             for (let j = 0; j < test.length; j++) {
                 parent = test[j]
-
                 for (let i = 0; i < parent.childNodes.length; i++) {
                     if (parent.childNodes[i].tagName !== "path") {
                         parent.removeChild(parent.childNodes[i]);
@@ -57,15 +46,9 @@ class DendoNewRev extends React.Component {
                 })
             }
 
-            // console.log(this.props.finalArr[i].name)
             d3.selectAll("#z" + this.props.finalArr[i].name).attr("d", null)
             d3.selectAll("#z" + this.props.finalArr[i].name).attr("d", d => { return pieSmall(d)() })
         }
-
-        // d3.selectAll("#z" + t.data.name).attr("d", null)
-        // d3.selectAll("#z" + t.data.name).attr("d", d => { return pieSmall(d)() })
-
-
 
         let pieBig = d => d3.arc()
             .innerRadius(0)
@@ -76,26 +59,25 @@ class DendoNewRev extends React.Component {
         var sentimentColor = d3.scaleLinear()
             .domain([0, 0.05, 0.5, 0.625, 0.75, 1])
             .range(["darkgreen", "orangered", "darkgoldenrod", "slateblue", "dodgerblue", "orange"]);
+
         let temp = cloneDeep([...this.props.mdsArr])
+
         for (let i = 0; i < temp.length; i++) {
-            // console.log(temp[i])
             let clickState;
+
             try {
                 clickState = document.getElementById('p' + temp[i].name).getAttribute("clicked")
             }
+
             catch (e) {
                 continue
             }
-            // console.log(clickState)
             if (clickState == "false") {
                 d3.selectAll("#z" + temp[i].name).attr("d", null)
                 d3.selectAll("#z" + temp[i].name).attr("d", d => { return pieBig(d)() })
-                // document.getElementById('z' + temp[i].name).setAttribute("clicked", "true")
 
                 d3.selectAll("#h" + temp[i].name)
                     .append("svg:circle")
-                    // .attr("cx", transform_x)
-                    // .attr("cy", transform_y)
                     .attr("r", d => { return (14 / 3) })
                     .style("fill", d => { return sentimentColor(d.data.glyph.sentiment) })
                     .attr("opacity", 1)
