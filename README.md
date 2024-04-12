@@ -1,6 +1,8 @@
 [![Netlify Status](https://api.netlify.com/api/v1/badges/6cb4433e-9964-4b60-9145-53227f738b83/deploy-status)](https://app.netlify.com/sites/amazing-haupia-58b320/deploys)
 
-Here are clear instructions on how to run the project:
+Created as a part of the coursework for CSE578 - Data Visualization. Inspired by this [research paper](https://ieeexplore.ieee.org/document/6876013).
+
+**Note**: This doesn't have the entire 1M row dataset. Rather this consists of a subset of the actual data presented in the course CSE578 - Data Visualization.
 
 **Steps to Run the Project**
 1. **Install Node.js and npm**
