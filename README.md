@@ -96,6 +96,27 @@ npm run build
 
 The optimized static output is written to `fluxflow-frontend-main/build`.
 
+## Deploy to Cloudflare Workers
+
+This repository is a monorepo, so configure the connected Cloudflare Worker to run from the frontend directory:
+
+| Cloudflare setting | Value |
+| --- | --- |
+| Root directory | `fluxflow-frontend-main` |
+| Build command | `npm run build` |
+| Deploy command | `npx wrangler deploy` |
+
+`wrangler.jsonc` publishes the generated `build` directory as static assets, enables SPA fallback, and maps the Worker to `fluxflow.tinkerdock.dev` as a Custom Domain.
+
+You can also deploy from an authenticated local environment:
+
+```bash
+cd fluxflow-frontend-main
+npm run deploy
+```
+
+The `tinkerdock.dev` zone must be active in the same Cloudflare account used by the build. A Custom Domain lets Cloudflare create the required DNS record and TLS certificate; do not create a competing DNS record for `fluxflow.tinkerdock.dev`.
+
 ## Regenerate demo data
 
 The checked-in JSON files are ready to use. To regenerate them deterministically:

@@ -1,0 +1,15 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "fluxflow",
+  "compatibility_date": "2026-10-14",
+  "assets": {
+    "directory": "./build",
+    "not_found_handling": "single-page-application"
+  },
+  "routes": [
+    {
+      "pattern": "fluxflow.tinkerdock.dev",
+      "custom_domain": true
+    }
+  ]
+}
