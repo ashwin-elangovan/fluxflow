@@ -1,36 +1,136 @@
-[![Netlify Status](https://api.netlify.com/api/v1/badges/6cb4433e-9964-4b60-9145-53227f738b83/deploy-status)](https://app.netlify.com/sites/amazing-haupia-58b320/deploys)
+# FluxFlow
 
-Created as a part of the coursework for CSE578 - Data Visualization. Inspired by this [research paper](https://ieeexplore.ieee.org/document/6876013).
+FluxFlow is an interactive social-conversation analysis dashboard built with React and D3. It connects topic similarity, conversation structure, activity over time, geography, and audience metrics through one shared topic selection.
 
-**Note**: This doesn't have the entire 1M row dataset. Rather this consists of a subset of the actual data presented in the course CSE578 - Data Visualization.
+The project began as coursework for CSE 578 — Data Visualization and was inspired by [Visual Analysis of Topic Competition on Social Media](https://ieeexplore.ieee.org/document/6876013). The current interface and demo dataset have been redesigned for clearer exploration and comparison.
 
-**Steps to Run the Project**
-1. **Install Node.js and npm**
-   - Make sure you have Node.js version 16.14.0 and npm version 8.5.4 installed on your computer. You can download and install them from the official Node.js website: [Node.js Downloads](https://nodejs.org/).
+## Demo dataset
 
-2. **Open the Terminal**
-   - On Windows, run the terminal in administrator mode.
-   - On macOS, simply open the terminal.
+The repository includes deterministic synthetic data intended for visualization and interaction testing—not research conclusions or production analytics.
 
-3. **Navigate to the Project Directory**
-   - Change your working directory to the project folder called "fluxflow-frontend-main." You can use the `cd` command to navigate:
-     ```
-     cd fluxflow-frontend-main
-     ```
+- 10,023 unique posts
+- 150 curated topics
+- 8 topic categories
+- January–December 2022 coverage
+- 18 geographic locations
+- Varied topic volume, sentiment, anomaly, audience, engagement, and posting patterns
 
-4. **Install Dependencies**
-   - Run the following command to install project dependencies using npm. Note that `npm install` may generate some errors, but you can safely skip them:
-     ```
-     npm install
-     ```
+The generator guarantees year-round coverage for every topic while adding distinct activity bursts, so the timeline contains both sustained conversation and realistic peaks.
 
-5. **Start the Project**
-   - To start FluxFlow, use the following command:
-     ```
-     npm start
-     ```
+## Linked views
 
-6. **Access FluxFlow**
-   - Once the project has started, you can access FluxFlow in your web browser by navigating to [http://localhost:3000/](http://localhost:3000/).
+### Topic Space
 
-**Note:** FluxFlow has been developed and tested using the Google Chrome browser.
+An overview of topic similarity. Nearby points use similar language.
+
+- Horizontal position: people-led to systems-led conversation
+- Vertical position: practical to speculative conversation
+- Point size: post volume
+- Point center: sentiment
+- Outer ring: anomaly score
+
+Selecting a point updates every dependent view and automatically opens its category in Cluster Map.
+
+### Cluster Map
+
+A performant SVG constellation that organizes all topics into eight broad categories. The overview shows the category structure; opening one category reveals its 18–19 topics without rendering the entire hierarchy at once.
+
+- Node size: post volume
+- Node center: sentiment
+- Outer color: anomaly
+- Curved links: category membership
+
+Topic Space and Cluster Map share the same selection state.
+
+### Conversation Timeline
+
+A row-based beeswarm of selected posts across the full year.
+
+- Horizontal position: post date
+- Row: selected topic
+- Bubble size: follower count
+- Bubble color: sentiment
+- Hover/focus: post details
+
+Use **Replay** in the panel header to rebuild the beeswarm animation without changing the current selection or layout.
+
+### Geography
+
+An interactive globe and ranked location list show where posts in the current selection originated. Selecting a place smoothly centers the globe and opens its posts in pages of ten.
+
+### Topic Profiles
+
+A compact comparison of selected topics using per-post averages for audience, engagement, mentions, post length, sentiment, and anomaly.
+
+## Interaction model
+
+1. Select a topic in Topic Space or Cluster Map.
+2. Add more topics to compare them.
+3. Hover data points for details.
+4. Inspect timing, locations, and topic profiles using the same shared selection.
+5. Click an active topic again to remove it.
+
+The interface supports keyboard focus, reduced-motion preferences, responsive layouts, and accessible labels for chart controls.
+
+## Run locally
+
+Requirements:
+
+- A current Node.js LTS release
+- npm
+
+```bash
+cd fluxflow-frontend-main
+npm install
+npm start
+```
+
+Open [http://localhost:3000](http://localhost:3000) if it does not open automatically.
+
+## Production build
+
+```bash
+cd fluxflow-frontend-main
+npm run build
+```
+
+The optimized static output is written to `fluxflow-frontend-main/build`.
+
+## Regenerate demo data
+
+The checked-in JSON files are ready to use. To regenerate them deterministically:
+
+```bash
+cd fluxflow-frontend-main
+node scripts/generate-demo-data.mjs
+```
+
+Generated files:
+
+- `public/data/mds/mds_view_data.json`
+- `public/data/cluster/cluster_view_data.json`
+- `public/data/beeswarm/full_tweets_data.json`
+
+## Technology
+
+- React 18
+- D3 7
+- Redux Toolkit
+- TopoJSON
+- Create React App
+
+## Project structure
+
+```text
+fluxflow/
+├── fluxflow-frontend-main/
+│   ├── public/data/           # visualization-ready JSON
+│   ├── scripts/               # deterministic demo-data generator
+│   └── src/                   # React views, D3 charts, Redux state, and styles
+├── fluxflow-django-simple-scaper/
+└── sample_data/
+```
+
+## Data notice
+
+The bundled posts, engagement values, locations, sentiment values, and topic relationships are simulated. They are designed to demonstrate the interface and should not be presented as observed social-media behavior.
