@@ -1,383 +1,148 @@
 import React from 'react';
-import * as d3 from "d3";
-import Papa from 'papaparse'
-import { connect } from 'react-redux'
-import * as actionTypes from './redux/actions/actionType'
-import cloneDeep from 'clone-deep'
+import * as d3 from 'd3';
+import { connect } from 'react-redux';
+import * as actionTypes from './redux/actions/actionType';
+import { anomalyColor, COLORS, sentimentColor, toggleTopic, topicTooltip } from './visualizationConfig';
 
-//! [x] group tweets based on topic_id - 5 glyph
-//! [x] group tweets based on topic_id and topic_keyword - multiple glyph
-//! [] find the start and end time for topic_id for each glyph
-//! [] find avg of values for glyphs
-//! []
-/*
-    required glyph json
-    {
-        "1": {
-            anomaly_score: 0.1,
-            start_time:
-            end_time:
-        },
-        "2": {},
-        "anomaly1" // keep id as combo as key and add topicid at end
+class TopicSpace extends React.Component {
+    svgRef = React.createRef();
+    tooltipRef = React.createRef();
+
+    componentDidMount() {
+        this.drawChart();
     }
 
-*/
-
-
-class MDS_view extends React.Component {
-    data = []
-
-    topic_id_glyph = {};
-    topic_keyword_glyph = {}
-
-    async dataPreProcess(topics, tweets) {
-        for (let i = 0; i < topics.length; i++) {
-            if (this.topic_id_glyph.hasOwnProperty(topics[i][4])) {
-                this.topic_id_glyph[topics[i][4]].push(topics[i])
-            }
-            else {
-                this.topic_id_glyph[topics[i][4]] = [topics[i]]
-            }
-
-            if (this.topic_keyword_glyph.hasOwnProperty(topics[i][5])) {
-                this.topic_keyword_glyph[topics[i][5]].push(topics[i])
-            }
-            else {
-                this.topic_keyword_glyph[topics[i][5]] = [topics[i]]
-            }
-        }
+    componentDidUpdate(prevProps) {
+        if (prevProps.finalArr !== this.props.finalArr) this.drawChart();
+        if (prevProps.mdsArr !== this.props.mdsArr) this.updateSelection();
     }
 
-    async normalization(val, max, min) { return (val - min) / ((max - min)); }
+    isSelected = name => this.props.mdsArr.some(topic => topic.name === name);
 
-    getRandomInt = (max) => {
-        return Math.floor(Math.random() * max);
-    }
+    toggleTopic = (event, topic) => {
+        this.props.mds_assign(toggleTopic(this.props.mdsArr, topic));
+        event.stopPropagation();
+    };
 
-    async componentDidUpdate() {
-        // console.log("updated", this.props.finalArr)
-    }
+    showTooltip = (event, topic) => {
+        const start = new Date(topic.start_time);
+        const end = new Date(topic.end_time);
+        const dateLabel = date => date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+        d3.select(this.tooltipRef.current)
+            .html(`${topicTooltip(topic, this.isSelected(topic.name))}<div class="tooltip-time"><span>Active dates</span>${dateLabel(start)} – ${dateLabel(end)}</div>`)
+            .style('visibility', 'visible')
+            .style('left', `${Math.min(event.clientX + 18, window.innerWidth - 310)}px`)
+            .style('top', `${Math.min(event.clientY + 18, window.innerHeight - 240)}px`);
+    };
 
-    async componentDidMount() {
-        document.getElementById("my_svg").innerHTML = ""
-        let dataFetches = [
-            d3.json('./data/mds/mds_view_data.json')
-        ];
+    hideTooltip = () => d3.select(this.tooltipRef.current).style('visibility', 'hidden');
 
-        let mds_data = (await Promise.all(dataFetches).then())[0]
-        // Parse local CSV file
-        let o = await new Promise((resolve, reject) => {
-            Papa.parse("/data//mds/final_topic.csv", {
-                download: true,
-                dynamicTyping: true,
-                complete: function (results) {
-                    resolve(results.data)
-                }
-            });
-        })
+    updateSelection = () => {
+        const selected = new Set(this.props.mdsArr.map(topic => topic.name));
+        const nodes = d3.select(this.svgRef.current).selectAll('.topic-node');
+        nodes.classed('is-selected', topic => selected.has(topic.name));
+        nodes.select('.topic-ring')
+            .attr('r', topic => this.radiusScale(topic.user_volume) + (selected.has(topic.name) ? 7 : 3))
+            .attr('stroke-width', topic => selected.has(topic.name) ? 3 : 1);
+        nodes.select('.topic-label').style('display', topic => selected.has(topic.name) ? null : 'none');
+    };
 
-        let tweets_flux = await new Promise((resolve, reject) => {
-            Papa.parse("/data/mds/mds_tweets.csv", {
-                download: true,
-                header: false,
-                dynamicTyping: true,
-                complete: function (results) {
-                    resolve(results.data)
-                }
-            });
-        })
+    drawChart = () => {
+        const data = this.props.finalArr;
+        if (!data.length || !this.svgRef.current) return;
 
+        const width = 680;
+        const height = 430;
+        const margin = { top: 25, right: 35, bottom: 46, left: 55 };
+        const xExtent = d3.extent(data, topic => Number(topic.x));
+        const yExtent = d3.extent(data, topic => Number(topic.y));
+        const volumeExtent = d3.extent(data, topic => Number(topic.user_volume || 1));
+        const x = d3.scaleLinear().domain(xExtent).nice().range([margin.left, width - margin.right]);
+        const y = d3.scaleLinear().domain(yExtent).nice().range([height - margin.bottom, margin.top]);
+        this.radiusScale = d3.scaleSqrt().domain(volumeExtent).range([5, 14]).clamp(true);
 
-        o = o.slice(1, -1);
-        tweets_flux.splice(60, 1);
-        tweets_flux = tweets_flux.slice(1, 102);
+        const svg = d3.select(this.svgRef.current)
+            .attr('viewBox', `0 0 ${width} ${height}`)
+            .attr('preserveAspectRatio', 'xMidYMid meet');
+        svg.selectAll('*').remove();
 
-        this.dataPreProcess(o, tweets_flux)
+        const xGrid = d3.axisBottom(x).ticks(6).tickSize(-(height - margin.top - margin.bottom)).tickFormat('');
+        const yGrid = d3.axisLeft(y).ticks(6).tickSize(-(width - margin.left - margin.right)).tickFormat('');
+        svg.append('g').attr('class', 'chart-grid').attr('transform', `translate(0,${height - margin.bottom})`).call(xGrid);
+        svg.append('g').attr('class', 'chart-grid').attr('transform', `translate(${margin.left},0)`).call(yGrid);
+        svg.append('g').attr('class', 'chart-axis').attr('transform', `translate(0,${height - margin.bottom})`).call(d3.axisBottom(x).ticks(6));
+        svg.append('g').attr('class', 'chart-axis').attr('transform', `translate(${margin.left},0)`).call(d3.axisLeft(y).ticks(6));
 
-        var anomalyColor = d3.scaleLinear()
-            .domain([0, 0.5, 0.625, 0.75, 1])
-            .range(["darkorchid", "peru", "darkturquoise", "azure", "darksalmon", "grey"]);
+        svg.append('text')
+            .attr('class', 'axis-caption axis-title')
+            .attr('x', (margin.left + width - margin.right) / 2)
+            .attr('y', height - 9)
+            .attr('text-anchor', 'middle')
+            .text('PEOPLE-LED  ←  CONVERSATION FOCUS  →  SYSTEMS-LED');
+        svg.append('text')
+            .attr('class', 'axis-caption axis-title')
+            .attr('transform', `translate(14,${(margin.top + height - margin.bottom) / 2}) rotate(-90)`)
+            .attr('text-anchor', 'middle')
+            .text('PRACTICAL  ←  DISCUSSION MODE  →  SPECULATIVE');
 
-        var sentimentColor = d3.scaleLinear()
-            .domain([0, 0.05, 0.5, 0.625, 0.75, 1])
-            .range(["darkgreen", "orangered", "darkgoldenrod", "slateblue", "dodgerblue", "orange"]);
-
-        var margin = { top: 10, right: 20, bottom: 30, left: 20 },
-            height = 400 - margin.top - margin.bottom;
-
-        var svg = d3.select("#my_svg")
-            .append("svg")
-            .attr("width", "100%")
-            .attr("height", "455px")
-            .append("g")
-            .attr("transform",
-                "translate(" + (margin.left) + "," + (margin.top + 25) + ")");
-
-        let x_arr = [], y_arr = [], data = []
-        for (let i = 0; i < o.length; i++) {
-            x_arr.push(parseFloat(parseFloat(o[i][12]).toFixed(2)))
-            y_arr.push(parseFloat(parseFloat(o[i][13]).toFixed(2)))
-
-            let temp = {
-                x: parseFloat(parseFloat(o[i][12]).toFixed(2)),
-                y: parseFloat(parseFloat(o[i][13]).toFixed(2)),
-                r: await this.normalization(this.getRandomInt(1000), 900, 1000), //this.getRandomInt(1000)
-                anamoly: o[i][6],
-                sentiment: tweets_flux[i][10],
-                id: 'a' + o[i][1]
-            }
-            data.push(temp)
-        }
-
-        data = []
-        for (let i = 0; i < mds_data.length; i++) {
-            if (!data.find(x => x.name === mds_data[i]["name"])) {
-                mds_data[i]["name"] = mds_data[i]["name"].replace(/[^a-z0-9-]/g, "")
-                data.push(mds_data[i]);
-            }
-        }
-
-        var x = d3.scaleLinear()
-            .domain([-1.6, 0.5])
-            .range([0, 250])
-
-        svg.append("g")
-            .attr("transform", "translate(15," + height + ")")
-            .call(d3.axisBottom(x)
-                .tickValues([-1.6, -1, -0.5, 0, 0.5]));
-
-        // Add Y axis
-        var y = d3.scaleLinear()
-            .domain([-1.5, 2])
-            .range([height, 0]);
-
-        svg.append("g")
-            .attr("transform", "translate(15," + 0 + ")")
-            .call(d3.axisLeft(y))
-            ;
-
-        // Add a scale for bubble size
-        var z = d3.scaleLinear()
-            .domain([0, 10])
-            .range([1, 10]);
-
-        // let json_data = this.state.data;
-        // let outerRadius = await this.normalization(json_data.user_volume, 1000, 500) * 100;
-        // let inner_circle_radius = outerRadius / 10;
-
-        this.data = data;
-        await this.props.assign(data)
-        let pieBig = d => d3.arc()
-            .innerRadius(0)
-            .outerRadius(() => { return z(14) })
-            .startAngle(d.pie.startAngle)
-            .endAngle(d.pie.endAngle)
-
-        let pieSmall = d => d3.arc()
-            .innerRadius(0)
-            .outerRadius(() => { return z(5) })
-            .startAngle(d.pie.startAngle)
-            .endAngle(d.pie.endAngle)
-
-        const g = svg.selectAll(".pie")
-            .data(() => {
-                let temp = cloneDeep([...this.props.finalArr])
-                return temp
-            })
-            .join("g")
-            .attr("class", "pie")
-            .attr("transform", d => `translate(${x(d.x)},${y(d.y)})`)
-
-        const pg = g.selectAll("g")
-            .enter()
-            .data(d => {
-                d['values'] = [Math.random(2)]
-                return d3.pie()(d.values).map(p => ({
-                    pie: p, r: d.user_volume, anamoly: d.anamoly, sentiment: d.sentiment, name: d.name, start_time: new Date(d.start_time),
-                    end_time: new Date(d.end_time)
-                }))
-            })
-
-            .join("g")
-            .attr("id", d => ('g' + d.name))
-
-        var tooltip = d3.select("#mds_tooltip")
-            .style("position", "absolute")
-            .style("visibility", "hidden")
-            .style("z-index", "-1")
-
-        pg.on("mousemove", function (d, e) {
-            var matrix = this.getScreenCTM()
-                .translate(+ this.getAttribute("cx"), + this.getAttribute("cy"));
-
-
-            tooltip.html((y, data) => {
-                return `<div style="margin: 5px">Anomaly ratio: <strong> ${e.anamoly.toFixed(2)} </strong></div>
-                        <div style="margin: 5px">Sentiment Score: <strong> ${e.sentiment.toFixed(2)} </strong></div>
-                        <div style="margin: 5px">Start time: <strong> ${e.start_time.getHours()}H:${e.start_time.getMinutes()}M:${e.start_time.getSeconds()}S </strong></div>
-                        <div style="margin: 5px">End time: <strong> ${e.end_time.getHours()}H:${e.end_time.getMinutes()}M:${e.end_time.getSeconds()}S </strong></div>`;
-            })
-                .style("visibility", "visible")
-                .style("z-index", "100")
-                .style("left", (window.pageXOffset + matrix.e + 15) + "px")
-                .style("top", (window.pageYOffset + matrix.f - 30) + "px");
-        })
-            .on('mouseout', function (d, e) {
-                tooltip
-                    .style("visibility", "hidden")
-                    .style("z-index", "-1")
-                document.getElementById("mds_tooltip").innerHTML = ""
-                if (this.tooltip !== undefined) {
-                    this.tooltip.style("opacity", 0)
-                    this.tooltip.style("z-index", -1);
-                }
+        const nodes = svg.append('g')
+            .selectAll('g')
+            .data(data, topic => topic.name)
+            .join('g')
+            .attr('class', 'topic-node')
+            .attr('transform', topic => `translate(${x(topic.x)},${y(topic.y)})`)
+            .attr('role', 'button')
+            .attr('tabindex', 0)
+            .attr('aria-label', topic => `Select topic ${topic.name}`)
+            .on('mousemove', this.showTooltip)
+            .on('mouseleave', this.hideTooltip)
+            .on('click', this.toggleTopic)
+            .on('keydown', (event, topic) => {
+                if (event.key === 'Enter' || event.key === ' ') this.toggleTopic(event, topic);
             });
 
+        nodes.append('circle')
+            .attr('class', 'topic-ring')
+            .attr('r', topic => this.radiusScale(topic.user_volume) + 3)
+            .attr('fill', COLORS.paper)
+            .attr('stroke', COLORS.ink);
+        nodes.append('circle')
+            .attr('class', 'topic-core')
+            .attr('r', topic => this.radiusScale(topic.user_volume))
+            .attr('fill', topic => anomalyColor(Number(topic.anamoly || 0)))
+            .attr('stroke', COLORS.ink)
+            .attr('stroke-width', 1.25);
+        nodes.append('circle')
+            .attr('class', 'sentiment-core')
+            .attr('r', topic => Math.max(2.5, this.radiusScale(topic.user_volume) * .32))
+            .attr('fill', topic => sentimentColor(Number(topic.sentiment || 0)));
+        nodes.append('text')
+            .attr('class', 'topic-label')
+            .attr('x', topic => this.radiusScale(topic.user_volume) + 8)
+            .attr('dy', '.32em')
+            .text(topic => `#${topic.name}`)
+            .style('display', 'none');
 
-        const slice = pg
-            .append("path")
-            .attr("clicked", "false")
-            .attr("id", d => { return ("p" + d.name) })
-            .attr("d", d => { return pieSmall(d)() })
-            .attr("opacity", 1)
-            .style("stroke", "black")
-            .style("stroke-width", "1.25px")
-            .attr("fill", d => {
-                return anomalyColor(d.anamoly)
-            })
-            .attr("transform", "translate(15," + 0 + ")")
-
-        pg.on('click', async (e, t) => {
-            let click = document.getElementById("p" + t.name)
-            let clickState = click.getAttribute("clicked")
-
-            if (clickState === "false") {
-                let temp = cloneDeep([...this.props.mdsArr]);
-                let mds_data
-                for (let j = 0; j < this.props.finalArr.length; j++) {
-                    if (this.props.finalArr[j].name === t.name) {
-                        mds_data = this.props.finalArr[j]
-                    }
-
-                }
-                temp.push(mds_data);
-                await this.props.mds_assign(temp)
-
-                d3.select("#" + "p" + t.name).attr("d", null)
-                d3.select("#" + "p" + t.name).attr("d", d => { return pieBig(d)() })
-                pg
-                    .style("opacity", "1")
-
-                d3.select("#g" + t.name)
-                    .append("svg:circle")
-                    .attr("r", d => { return (14 / 3) })
-                    .style("fill", d => { return sentimentColor(d.sentiment) })
-                    .attr("transform", "translate(15," + 0 + ")")
-
-                var lines = d3.select("#g" + t.name)
-                    .append("line")
-                    .attr("x1", 0)
-                    .attr("y1", 0)
-                    .attr("y2", function (d) {
-                        return Math.sin(clockToRad((d.start_time.getHours() - 3), -1)) * (13.5)
-                    })
-                    .attr("x2", function (d) {
-                        return Math.cos(clockToRad((d.start_time.getHours() - 3), -1)) * (13.5)
-                    })
-                    .attr("stroke", "black")
-                    .attr("transform", "translate(15," + 0 + ")")
-                    .attr("stroke-width", 1)
-
-                document.querySelector('#' + "p" + t.name).setAttribute("clicked", "true")
-            }
-            else {
-                let parent = document.getElementById('g' + t.name)
-                let temp = cloneDeep([...this.props.mdsArr]);
-                let mds_data = []
-
-                for (let j = 0; j < this.props.mdsArr.length; j++) {
-                    if (this.props.mdsArr[j].name !== t.name) {
-                        mds_data.push(this.props.mdsArr[j])
-                    }
-                }
-
-                temp = mds_data;
-                await this.props.mds_assign(temp)
-
-                for (let i = 0; i < parent.childNodes.length; i++) {
-
-                    if (parent.childNodes[i].tagName !== "path") {
-                        parent.removeChild(parent.childNodes[i]);
-                    }
-                }
-                parent.childNodes.forEach(c => {
-
-                    if (c.tagName !== "path") {
-                        parent.removeChild(c);
-                    }
-                })
-                d3.select("#" + "p" + t.name).attr("d", null)
-                d3.select("#" + "p" + t.name).attr("d", d => { return pieSmall(d)() })
-
-                document.getElementById("p" + t.name).setAttribute("clicked", "false")
-
-            }
-        })
-
-        function degToRad(degrees) {
-            return degrees * Math.PI / 180;
-        }
-
-        function clockToRad(clock, direction) {
-            var unit = 360 / 12;
-            var degree = direction > 0 ? unit * clock : unit * clock - 360;
-            return degToRad(degree);
-        }
-    }
+        this.updateSelection();
+    };
 
     render() {
         return (
-            <div>
-                <div className='view_text'>
-                    MDS View
-                </div>
-                <div className='ct1'>
-                    <div className='svg-container'>
-                        <svg id="my_svg" width={"100%"} height={"455px"}>
-                            {/* SVG content */}
-                        </svg>
-                    </div>
-                    <div id="mds_tooltip">
-                        {/* Tooltip content */}
-                    </div>
-                </div>
+            <div className="topic-space-root">
+                <svg ref={this.svgRef} id="my_svg" role="img" aria-label="Topics positioned by similarity. Hover for details and click to select." />
+                <div ref={this.tooltipRef} className="tooltip-container" aria-live="polite" />
             </div>
-
-        )
+        );
     }
 }
 
-function mapStateToProps(state) {
-    return {
-        finalArr: state.reducer.finalArr,
-        mdsArr: state.reducer.mdsArr
-    }
-}
+const mapStateToProps = state => ({
+    finalArr: state.reducer.finalArr,
+    mdsArr: state.reducer.mdsArr
+});
 
-function mapDispatchToProps(dispatch) {
-    return {
-        assign: (data) => {
-            dispatch({ type: actionTypes.ASSIGN, data: data })
-        },
+const mapDispatchToProps = dispatch => ({
+    mds_assign: data => dispatch({ type: actionTypes.MDS_ASSIGN, data })
+});
 
-        mds_assign: (data) => {
-            dispatch({ type: actionTypes.MDS_ASSIGN, data: data })
-        }
-    }
-};
-
-export default connect(
-    mapStateToProps,
-    mapDispatchToProps
-)(MDS_view);
+export default connect(mapStateToProps, mapDispatchToProps)(TopicSpace);

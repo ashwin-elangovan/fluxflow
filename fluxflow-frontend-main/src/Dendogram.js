@@ -1,352 +1,104 @@
 import React from 'react';
-import * as d3 from "d3";
-import { connect } from 'react-redux'
-import * as actionTypes from './redux/actions/actionType'
-import cloneDeep from 'clone-deep'
+import { connect } from 'react-redux';
+import * as actionTypes from './redux/actions/actionType';
+import { anomalyColor, COLORS, sentimentColor, toggleTopic } from './visualizationConfig';
 
-class Dendogram extends React.Component {
+const WIDTH = 1200;
+const HEIGHT = 620;
+const CENTER = { x: WIDTH / 2, y: HEIGHT / 2 };
 
-    dataFetches; data;
-    constructor(props) {
-        super(props)
-        this.state = {
-            items: props.items
+class ClusterMap extends React.Component {
+    state = { activeBranch: null };
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.mdsArr !== this.props.mdsArr) {
+            const before = new Set(prevProps.mdsArr.map(topic => topic.name));
+            const added = this.props.mdsArr.find(topic => !before.has(topic.name));
+            const branch = added && this.categories().find(category => (category.children || []).some(topic => topic.name === added.name));
+            if (branch && branch.name !== this.state.activeBranch) this.setState({ activeBranch: branch.name });
         }
-
     }
 
-    async componentDidUpdate(items) {
-        var z = d3.scaleLinear()
-            .domain([0, 10])
-            .range([1, 10]);
+    categories = () => this.props.clusterArr[0]?.children || [];
+    topicFor = node => this.props.finalArr.find(topic => topic.name === node.name) || node.glyph;
+    isSelected = name => this.props.mdsArr.some(topic => topic.name === name);
+    selectTopic = topic => this.props.mds_assign(toggleTopic(this.props.mdsArr, topic));
 
-        let pieSmall = d => d3.arc()
-            .innerRadius(0)
-            .outerRadius(() => { return z(7) })
-            .startAngle(0)
-            .endAngle(360)
-
-        for (let i = 0; i < this.props.finalArr.length; i++) {
-            let test1 = this.props.mdsArr.some(el => el.name === this.props.finalArr[i].name);
-            if (test1) continue
-            let parent = document.getElementById("h" + this.props.finalArr[i].name)
-            let test = document.querySelectorAll(`[id=${"h" + this.props.finalArr[i].name}]`);
-            for (let j = 0; j < test.length; j++) {
-                parent = test[j]
-                for (let i = 0; i < parent.childNodes.length; i++) {
-                    if (parent.childNodes[i].tagName !== "path") {
-                        parent.removeChild(parent.childNodes[i]);
-                    }
-                }
-                parent.childNodes.forEach(c => {
-                    if (c.tagName !== "path") {
-                        parent.removeChild(c);
-                    }
-                })
-            }
-
-            d3.selectAll("#z" + this.props.finalArr[i].name).attr("d", null)
-            d3.selectAll("#z" + this.props.finalArr[i].name).attr("d", d => { return pieSmall(d)() })
-        }
-
-        let pieBig = d => d3.arc()
-            .innerRadius(0)
-            .outerRadius(() => { return z(14) })
-            .startAngle(0)
-            .endAngle(360)
-
-        var sentimentColor = d3.scaleLinear()
-            .domain([0, 0.05, 0.5, 0.625, 0.75, 1])
-            .range(["darkgreen", "orangered", "darkgoldenrod", "slateblue", "dodgerblue", "orange"]);
-
-        let temp = cloneDeep([...this.props.mdsArr])
-
-        for (let i = 0; i < temp.length; i++) {
-            let clickState;
-
-            try {
-                clickState = document.getElementById('p' + temp[i].name).getAttribute("clicked")
-            }
-
-            catch (e) {
-                continue
-            }
-
-            if (clickState === "false") {
-                d3.selectAll("#z" + temp[i].name).attr("d", null)
-                d3.selectAll("#z" + temp[i].name).attr("d", d => { return pieBig(d)() })
-
-                d3.selectAll("#h" + temp[i].name)
-                    .append("svg:circle")
-                    .attr("r", d => { return (14 / 3) })
-                    .style("fill", d => { return sentimentColor(d.data.glyph.sentiment) })
-                    .attr("opacity", 1)
-
-                d3.selectAll("#h" + temp[i].name)
-                    .append("line")
-                    .attr("x1", 0)
-                    .attr("y1", 0)
-                    .attr("y2", function (d) {
-                        if (d.data) {
-                            d["end_time"] = new Date(d.data.glyph.end_time)
-                            return Math.sin(clockToRad((d.end_time.getHours() - 3), -1)) * (13.5)
-                        }
-                    })
-                    .attr("x2", function (d) {
-                        if (d.data) {
-                            d["end_time"] = new Date(d.data.glyph.end_time)
-                            return Math.cos(clockToRad((d.end_time.getHours() - 3), -1)) * (13.5)
-                        }
-                    })
-                    .attr("stroke", "black")
-                    .attr("stroke-width", 1)
-            }
+    categoryStats = category => {
+        const topics = (category.children || []).map(this.topicFor).filter(Boolean);
+        return {
+            topics,
+            posts: topics.reduce((sum, topic) => sum + Number(topic.user_volume || 0), 0),
+            selected: topics.filter(topic => this.isSelected(topic.name)).length
         };
+    };
 
-        function degToRad(degrees) {
-            return degrees * Math.PI / 180;
-        }
-
-        function clockToRad(clock, direction) {
-            var unit = 360 / 12;
-            var degree = direction > 0 ? unit * clock : unit * clock - 360;
-            return degToRad(degree);
-        }
+    overviewPositions(categories) {
+        return categories.map((category, index) => {
+            const angle = -Math.PI / 2 + (index / categories.length) * Math.PI * 2;
+            return { category, x: CENTER.x + Math.cos(angle) * 400, y: CENTER.y + Math.sin(angle) * 220 };
+        });
     }
 
+    topicPositions(topics) {
+        const split = Math.ceil(topics.length / 2);
+        return topics.map((topic, index) => {
+            const left = index < split;
+            const sideIndex = left ? index : index - split;
+            const sideCount = left ? split : topics.length - split;
+            const y = sideCount === 1 ? CENTER.y : 76 + sideIndex * ((HEIGHT - 152) / (sideCount - 1));
+            return { topic, side: left ? 'left' : 'right', x: left ? 250 : 950, y };
+        });
+    }
 
-    async componentDidMount(items) {
-        var width = 350
-        var height = 727
-        var svg = d3.select("#dendogramNew")
-            .append("svg")
-            .attr("width", width)
-            .attr("height", height)
-            .append('g')
-            .attr("transform", "translate(20,0)");  // bit of margin on the left = 40
+    renderOverview(categories) {
+        const positions = this.overviewPositions(categories);
+        return <svg className="cluster-constellation" viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="tree" aria-label="Eight conversation clusters arranged around all topics">
+            <g className="cluster-constellation-links">{positions.map(({ category, x, y }) => <path key={category.name} d={`M${CENTER.x},${CENTER.y} Q${(CENTER.x + x) / 2},${y} ${x},${y}`} />)}</g>
+            <g className="cluster-hub"><circle cx={CENTER.x} cy={CENTER.y} r="34"/><text x={CENTER.x} y={CENTER.y - 2}>ALL</text><text className="cluster-hub-sub" x={CENTER.x} y={CENTER.y + 13}>150 TOPICS</text></g>
+            {positions.map(({ category, x, y }) => {
+                const stats = this.categoryStats(category);
+                return <g key={category.name} className={`cluster-category-node ${stats.selected ? 'has-selection' : ''}`} transform={`translate(${x},${y})`} role="button" tabIndex="0" aria-label={`Open ${category.name} cluster, ${stats.topics.length} topics`} onClick={() => this.setState({ activeBranch: category.name })} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') this.setState({ activeBranch: category.name }); }}>
+                    <circle className="node-halo" r="27"/><circle className="node-core" r="21" fill={anomalyColor(Number(category.glyph?.anamoly || 0))}/><text className="cluster-category-name" y="43">{category.name}</text><text className="cluster-category-count" y="56">{stats.topics.length} topics · {stats.posts.toLocaleString()} posts</text>{!!stats.selected && <text className="cluster-selected-count" y="-34">{stats.selected} SELECTED</text>}
+                </g>;
+            })}
+        </svg>;
+    }
 
-        let dataFetches = [
-            d3.json('./data/cluster/cluster_view_data.json')
-
-        ];
-        Promise.all(dataFetches).then((data) => {
-            this.props.cluster_assign([data])
-
-            // Create the cluster layout
-            var cluster = d3.cluster()
-                .size([height, width - 100]);
-
-            // Give the data to this cluster layout:
-            var root = d3.hierarchy(this.props.clusterArr[0], function (d) {
-                return d.children;
-            });
-
-            cluster(root);
-            var anomalyColor = d3.scaleLinear()
-                .domain([0, 0.5, 0.625, 0.75, 1])
-                .range(["darkorchid", "peru", "darkturquoise", "azure", "darksalmon", "grey"]);
-            var sentimentColor = d3.scaleLinear()
-                .domain([0, 0.05, 0.5, 0.625, 0.75, 1])
-                .range(["darkgreen", "orangered", "darkgoldenrod", "slateblue", "dodgerblue", "orange"]);
-
-            // Add the links between nodes:
-            svg.selectAll('path')
-                .data(root.descendants().slice(1))
-                .enter()
-                .append('path')
-                .attr("d", function (d) {
-                    return "M" + d.y + "," + d.x
-                        + "C" + (d.parent.y + 20) + "," + d.x
-                        + " " + (d.parent.y + 30) + "," + d.parent.x // 50 and 150 are coordinates of inflexion, play with it to change links shape
-                        + " " + d.parent.y + "," + d.parent.x;
-                })
-                .style("fill", 'none')
-                .attr("stroke", (d) => {
-                    return anomalyColor(1 - d.data.glyph.anamoly)
-                })
-                .style("stroke-width", "1.5px")
-            var z = d3.scaleLinear()
-                .domain([0, 10])
-                .range([1, 10]);
-
-            let pieBig = d => d3.arc()
-                .innerRadius(0)
-                .outerRadius(() => { return z(14) })
-                .startAngle(0)
-                .endAngle(360)
-
-            let pieSmall = d => d3.arc()
-                .innerRadius(0)
-                .outerRadius(() => { return z(7) })
-                .startAngle(0)
-                .endAngle(360)
-
-            // Add a circle for each node.
-            const pd = svg.selectAll('g')
-                .data(() => { return root.descendants() })
-                .enter()
-                .append('g')
-                .attr('id', (d) => { return ("h" + d.data.name) })
-
-                .attr("transform", function (d) {
-                    return "translate(" + d.y + "," + d.x + ")"
-                })
-                .append("path")
-                .attr('id', (d) => { return 'z' + d.data.name })
-                .attr("clicked", "false")
-            pd
-                .attr("d", d => {
-                    d['values'] = [Math.random(2)]
-                    let t = d3.pie()(d.values).map(p => ({ p }))
-                    return pieSmall(t)()
-                })
-                .attr("fill", d => {
-                    return anomalyColor(d.data.glyph.anamoly)
-                })
-                .style("stroke", "black")
-                .style("stroke-width", "1.25px")
-                .on('click', function (e, t) {
-                    let clickState = document.getElementById('z' + t.data.name).getAttribute("clicked")
-                    if (clickState === "false") {
-                        d3.selectAll("#z" + t.data.name).attr("d", null)
-                        d3.selectAll("#z" + t.data.name).attr("d", d => {
-                            return pieBig(d)()
-                        })
-                        d3.selectAll("#h" + t.data.name)
-                            .append("svg:circle")
-                            .attr("r", d => { return (14 / 3) })
-                            .style("fill", d => { console.log(d.data); return sentimentColor(d.data.glyph.sentiment) })
-                        document.getElementById('z' + t.data.name).setAttribute("clicked", "true")
-
-                        d3.selectAll("#z" + t.data.name)
-                            .append("svg:circle")
-                            .attr("r", d => { return (14 / 1) })
-                            .style("fill", d => { return sentimentColor(d.data.glyph.sentiment) })
-                            .attr("opacity", 1)
-
-                        d3.selectAll("#h" + t.data.name)
-                            .append("line")
-                            .attr("x1", 0)
-                            .attr("y1", 0)
-                            .attr("y2", function (d) {
-                                if (d.data) {
-                                    d["end_time"] = new Date(d.data.glyph.end_time)
-                                    return Math.sin(clockToRad((d.end_time.getHours() - 3), -1)) * (13.5)
-                                }
-                            })
-                            .attr("x2", function (d) {
-                                if (d.data) {
-                                    d["end_time"] = new Date(d.data.glyph.end_time)
-                                    return Math.cos(clockToRad((d.end_time.getHours() - 3), -1)) * (13.5)
-                                }
-                            })
-                            .attr("stroke", "black")
-                            .attr("stroke-width", 1)
-                    }
-                    else {
-                        let parent = document.getElementById("h" + t.data.name)
-                        let test = document.querySelectorAll(`[id=${"h" + t.data.name}]`);
-                        for (let j = 0; j < test.length; j++) {
-                            parent = test[j]
-
-                            for (let i = 0; i < parent.childNodes.length; i++) {
-                                if (parent.childNodes[i].tagName !== "path") {
-                                    parent.removeChild(parent.childNodes[i]);
-                                }
-                            }
-                            parent.childNodes.forEach(c => {
-                                if (c.tagName !== "path") {
-                                    parent.removeChild(c);
-                                }
-                            })
-                        }
-                        d3.selectAll("#z" + t.data.name).attr("d", null)
-                        d3.selectAll("#z" + t.data.name).attr("d", d => { return pieSmall(d)() })
-                        document.getElementById('z' + t.data.name).setAttribute("clicked", "false")
-                    }
-                })
-            var tooltip = d3.select("#dendo_tooltip")
-                .style("position", "absolute")
-                .style("visibility", "hidden")
-                .style("z-index", "-1")
-
-            pd.on("mousemove", function (d, e) {
-                var matrix = this.getScreenCTM()
-                    .translate(+ this.getAttribute("cx"), + this.getAttribute("cy"));
-
-
-                tooltip.html((y, data) => {
-                    return `<div>Keywords clustered: </div>
-                            <div> <strong> ${e.data.glyph.keywords.toString()} </strong> </div>
-                       `})
-                    .style("visibility", "visible")
-                    .style("z-index", "100")
-                    .style("left", (window.pageXOffset + matrix.e + 15) + "px")
-                    .style("top", (window.pageYOffset + matrix.f - 30) + "px")
-            })
-                .on('mouseout', function (d, e) {
-                    tooltip
-                        .style("visibility", "hidden")
-                        .style("z-index", "-1")
-                    document.getElementById("mds_tooltip").innerHTML = ""
-                    if (this.tooltip !== undefined) {
-                        this.tooltip.style("opacity", 0)
-                        this.tooltip.style("z-index", -1);
-                    }
-                });
-        })
-
-        function degToRad(degrees) {
-            return degrees * Math.PI / 180;
-        }
-
-        function clockToRad(clock, direction) {
-            var unit = 360 / 12;
-            var degree = direction > 0 ? unit * clock : unit * clock - 360;
-            return degToRad(degree);
-        }
+    renderBranch(category) {
+        const stats = this.categoryStats(category);
+        const positions = this.topicPositions(stats.topics);
+        const radius = topic => 7 + Math.sqrt(Number(topic.user_volume || 1) / 90) * 6;
+        return <div className="cluster-focused-map">
+            <div className="cluster-focus-summary"><button type="button" onClick={() => this.setState({ activeBranch: null })}>← Overview</button><span><b>{category.name}</b>{stats.topics.length} topics · {stats.posts.toLocaleString()} posts</span><em>{stats.selected} selected</em></div>
+            <svg className="cluster-constellation" viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="tree" aria-label={`${category.name} cluster with ${stats.topics.length} topics`}>
+                <g className="cluster-constellation-links">{positions.map(({ topic, x, y }) => <path key={topic.name} d={`M${CENTER.x},${CENTER.y} C${(CENTER.x + x) / 2},${CENTER.y} ${(CENTER.x + x) / 2},${y} ${x},${y}`} stroke={anomalyColor(Number(topic.anamoly || 0))}/>)}</g>
+                <g className="cluster-active-hub"><circle cx={CENTER.x} cy={CENTER.y} r="42" fill={COLORS.ink}/><text x={CENTER.x} y={CENTER.y - 3}>#{category.name}</text><text className="cluster-hub-sub" x={CENTER.x} y={CENTER.y + 14}>CLUSTER</text></g>
+                {positions.map(({ topic, side, x, y }) => {
+                    const selected = this.isSelected(topic.name);
+                    const r = radius(topic);
+                    const labelX = side === 'left' ? -(r + 9) : r + 9;
+                    return <g key={topic.name} className={`cluster-topic-node ${selected ? 'is-selected' : ''}`} transform={`translate(${x},${y})`} role="button" tabIndex="0" aria-label={`${selected ? 'Remove' : 'Select'} topic ${topic.name}`} onClick={() => this.selectTopic(topic)} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.selectTopic(topic); } }}>
+                        <circle className="node-halo" r={r + 5}/><circle className="node-core" r={r} fill={anomalyColor(Number(topic.anamoly || 0))}/><circle className="sentiment-core" r={Math.max(2.5, r * .34)} fill={sentimentColor(Number(topic.sentiment || 0))}/><text className="cluster-topic-name" x={labelX} textAnchor={side === 'left' ? 'end' : 'start'} dy=".32em">#{topic.name}</text><title>{`${topic.user_volume} posts · sentiment ${Number(topic.sentiment || 0).toFixed(2)} · anomaly ${Number(topic.anamoly || 0).toFixed(2)}`}</title>
+                    </g>;
+                })}
+            </svg>
+        </div>;
     }
 
     render() {
-        return (
-            <div id='dendogramNew'>
-            <div id="dendo_tooltip" className='tooltip-container'>
-
+        const categories = this.categories();
+        const active = categories.find(category => category.name === this.state.activeBranch);
+        return <div className="cluster-map-root">
+            <div className="cluster-toolbar">
+                <div className="cluster-toolbar-copy"><b>8</b><span>Open one cluster at a time. Select a topic to update Topic Space and every linked view.</span></div>
+                <div className="cluster-filters" role="group" aria-label="Filter cluster map by category"><button type="button" className={!active ? 'is-active' : ''} onClick={() => this.setState({ activeBranch: null })}>Overview</button>{categories.map(category => <button type="button" key={category.name} className={active?.name === category.name ? 'is-active' : ''} onClick={() => this.setState({ activeBranch: category.name })}>{category.name}<small>{this.categoryStats(category).selected || category.children?.length || 0}</small></button>)}</div>
             </div>
-                <div id="dendo_text" className='view_text'>
-                Cluster View
-            </div>
-        </div>
-        )
-    }
-
-}
-
-
-function mapStateToProps(state) {
-    return {
-        finalArr: state.reducer.finalArr,
-        mdsArr: state.reducer.mdsArr,
-        clusterArr: state.reducer.clusterArr,
+            {active ? this.renderBranch(active) : this.renderOverview(categories)}
+        </div>;
     }
 }
 
-function mapDispatchToProps(dispatch) {
-    return {
-        assign: (data) => {
-            dispatch({ type: actionTypes.ASSIGN, data: data })
-        },
-        mds_assign: (data) => {
-            dispatch({ type: actionTypes.MDS_ASSIGN, data: data })
-        },
-        cluster_assign: (data) => {
-            dispatch({ type: actionTypes.CLUSTER_ASSIGN, data: data })
-        },
-    }
-};
-
-
-export default connect(
-    mapStateToProps,
-    mapDispatchToProps
-)(Dendogram);
+const mapStateToProps = state => ({ finalArr: state.reducer.finalArr, mdsArr: state.reducer.mdsArr, clusterArr: state.reducer.clusterArr });
+const mapDispatchToProps = dispatch => ({ mds_assign: data => dispatch({ type: actionTypes.MDS_ASSIGN, data }) });
+export default connect(mapStateToProps, mapDispatchToProps)(ClusterMap);
